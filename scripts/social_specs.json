@@ -1,0 +1,311 @@
+{
+  "specVersion": "2026-10-08",
+  "note": "全平台硬参数的单一事实来源。模板 HTML 与 check_social_delivery.py 都从这里读，不要在别处硬编码。带 source 的条目为官方明文；带 uncertainty 的条目不得当确定值使用。平台节点的 exportPath 决定产出物落在 export/<exportPath>/。",
+  "sources": {
+    "mp_editor": "微信服务市场《公众平台图文消息编辑方法》 https://fuwu.weixin.qq.com/community/develop/doc/000200289847d025d679fa0ab56809",
+    "mp_modify": "腾讯客服《公众号修改已群发消息的相关说明》 https://kf.qq.com/faq/180206QBjaU7180206ammUni.html",
+    "mp_asset": "微信开放文档·素材管理 https://developers.weixin.qq.com/doc/service/guide/product/asset.html",
+    "channels_help": "微信视频号帮助中心《视频号发表的素材有什么要求》 https://findeross.weixin.qq.com/cgi-bin/mmfindernodelivecrmwebbroker-bin/helper-center/pages/DCbKPGzZkvVHcIr6",
+    "channels_upload": "微信服务市场《请求人工指导，怎样上传视频号》 https://fuwu.weixin.qq.com/community/develop/doc/000e62d83dcb4069b7bfc5d4057000",
+    "image_msg": "微信官方《订阅号助手升级“图片消息”功能》(2023-03-15)",
+    "platform_params": "2025 版公众号/视频号平台参数汇总（非官方原文，标 uncertainty）",
+    "xhs_creator": "小红书创作服务平台（发布端编辑器，规格以编辑器实际提示为准） https://creator.xiaohongshu.com",
+    "xhs_third_party": "小红书规格第三方汇总（标记侠《小红书笔记配图与商品主图规范 2026》、果粉吧《小红书网页版发布入口》）—— 非官方原文，相关条目全部标 uncertainty"
+  },
+  "shared": {
+    "image": {
+      "colorSpace": "sRGB",
+      "perImageMaxBytes": 10485760,
+      "fontStack": "-apple-system, BlinkMacSystemFont, \"PingFang SC\", \"Microsoft YaHei\", sans-serif"
+    },
+    "video": {
+      "pixelFormat": "yuv420p",
+      "audioCodec": "aac",
+      "audioBitrate": "192k",
+      "loudnessTarget": { "i": -15, "tp": -1.5 },
+      "sampleRate": 44100,
+      "faststart": true
+    }
+  },
+  "platforms": {
+    "wechat": {
+      "label": "微信（公众号 / 视频号）",
+      "sources": ["mp_editor", "mp_modify", "mp_asset", "channels_help", "channels_upload", "image_msg", "platform_params"],
+      "forms": {
+        "image-text": {
+          "id": "wechat/image-text",
+          "label": "微信图文（公众号图片消息 / 小绿书）",
+          "exportPath": "wechat/image-text",
+          "card": {
+            "width": 1080,
+            "height": 1440,
+            "ratio": "3:4",
+            "ratioValue": 0.75,
+            "ratioTolerance": 0.02,
+            "maxBytes": 10485760,
+            "formats": ["jpg", "jpeg", "png", "bmp", "gif"],
+            "source": "platform_params",
+            "note": "官方展示比例为 3:4；1080x1440 为推荐尺寸"
+          },
+          "cardCount": {
+            "min": 1,
+            "recommended": [6, 9],
+            "maxMobile": 9,
+            "maxSubscriptionHelper": 20,
+            "uncertainty": "官方口径不一致：订阅号助手端 20 张、部分入口/旧版 9 张。以编辑器实际提示为准，不得编造确定值。",
+            "source": "image_msg"
+          },
+          "title": { "maxChars": 64, "source": "platform_params" },
+          "perCardText": {
+            "officialMaxChars": 2000,
+            "recommendedMaxChars": 60,
+            "source": "image_msg"
+          },
+          "animated": {
+            "maxFrames": 300,
+            "maxBytes": 10485760,
+            "recommendedGifWidth": 640,
+            "recommendedGifFps": [12, 20],
+            "livePhotoSupported": false,
+            "source": "image_msg"
+          },
+          "listThumbnail": [
+            { "whenCardsAtLeast": 3, "ratio": "2.35:1", "showsCards": 3, "source": "platform_params" },
+            { "whenCardsAtMost": 2, "ratio": "16:9", "showsCards": 1, "source": "platform_params" }
+          ],
+          "externalLinkSupported": false,
+          "notes": [
+            "前 3 张会被裁成 2.35:1 作为列表缩略图，关键信息必须落在中心安全区。",
+            "首图同时承担封面职责，系统自动生成封面不要依赖。",
+            "图片消息不支持外链，无法直接跳转公众号文章。"
+          ]
+        },
+        "mp-article": {
+          "id": "wechat/mp-article",
+          "label": "公众号长文（图文消息）",
+          "exportPath": "wechat/mp-article",
+          "title": { "maxChars": 64, "recommended": [18, 30], "noLineBreak": true, "source": "mp_editor" },
+          "author": { "maxChars": 8, "source": "platform_params" },
+          "digest": { "maxChars": 120, "autoFallbackChars": 54, "source": "mp_editor" },
+          "body": { "maxChars": 50000, "mustContainText": true, "source": "mp_editor" },
+          "bodyImageCount": { "max": 500, "source": "platform_params" },
+          "image": {
+            "formats": ["bmp", "png", "jpeg", "jpg", "gif"],
+            "maxBytes": 10485760,
+            "recommendedInsertWidth": 900,
+            "autoCompressedWidth": 640,
+            "source": "mp_editor"
+          },
+          "cover": {
+            "headline": { "width": 900, "height": 383, "ratio": "2.35:1", "ratioValue": 2.35, "ratioTolerance": 0.03, "source": "platform_params" },
+            "secondary": { "width": 500, "height": 500, "ratio": "1:1", "ratioValue": 1.0, "ratioTolerance": 0.02, "source": "platform_params" },
+            "inContentVideoCover": { "width": 1920, "height": 1080, "ratio": "16:9", "source": "platform_params" }
+          },
+          "htmlWhitelist": {
+            "allowedTags": ["p", "section", "div", "span", "strong", "b", "em", "i", "u", "br", "blockquote", "ul", "ol", "li", "h1", "h2", "h3", "h4", "h5", "h6", "table", "thead", "tbody", "tr", "td", "th", "img", "a", "hr", "mpvoice", "mpvideo"],
+            "strippedAttributes": ["id"],
+            "ineffectiveAttributes": ["class"],
+            "allowedInlineStyleProps": ["color", "background-color", "font-size", "font-weight", "font-style", "text-align", "line-height", "letter-spacing", "text-decoration", "margin", "margin-top", "margin-bottom", "margin-left", "margin-right", "padding", "padding-top", "padding-bottom", "padding-left", "padding-right", "border", "border-left", "border-radius", "box-shadow", "opacity", "display", "vertical-align", "width", "max-width", "height"],
+            "bannedPatterns": [
+              { "pattern": "<style", "why": "style 块会被剥离" },
+              { "pattern": "<script", "why": "脚本会被屏蔽" },
+              { "pattern": "@media", "why": "媒体查询无效" },
+              { "pattern": "@keyframes", "why": "动画定义无效" },
+              { "pattern": "position\\s*:", "why": "position 属性会被过滤" },
+              { "pattern": "on[a-z]+\\s*=", "why": "事件属性会被剥除" },
+              { "pattern": "<iframe", "why": "iframe 不支持" },
+              { "pattern": "<form", "why": "表单不支持" },
+              { "pattern": "<input", "why": "input 不支持" },
+              { "pattern": "<audio", "why": "应使用 mpvoice" },
+              { "pattern": "<video", "why": "应使用 mpvideo" },
+              { "pattern": "data:image/", "why": "base64 图片不显示" }
+            ]
+          },
+          "modifyQuota": {
+            "times": 3,
+            "titleChars": 3,
+            "bodyChars": 120,
+            "images": 3,
+            "videos": 1,
+            "source": "mp_modify",
+            "note": "发布即几乎定稿，交付前必须自检"
+          },
+          "notes": [
+            "发多条时头条标题会压在封面图上，封面下半部与中心区需保持低干扰。",
+            "不填摘要时系统抓正文前 54 字，必须手写摘要或把开头 54 字写成钩子。",
+            "正文图片 src 必须是微信素材库地址（https://mmbiz.qpic.cn/...），外链与 base64 都不显示。"
+          ]
+        },
+        "channels": {
+          "id": "wechat/channels",
+          "label": "视频号视频",
+          "exportPath": "wechat/channels",
+          "video": {
+            "aspectRange": [0.33, 3.0],
+            "recommendedAspects": ["9:16", "16:9"],
+            "durationSeconds": { "min": 3, "maxMobile": 3600, "maxMobileLegacy": 1800, "maxHelper": 28800, "source": "channels_help" },
+            "maxBytesMobile": 2147483648,
+            "maxBytesHelper": 21474836480,
+            "recommendedBitrateBps": 10000000,
+            "minResolutionHeight": 1080,
+            "codecs": ["h264", "hevc"],
+            "preferredCodec": "h264",
+            "codecNote": "H.265 在 Windows Chrome/Edge 上不能播放，全平台稳妥请导 H.264",
+            "hdrSupported": false,
+            "source": "channels_help"
+          },
+          "cover": {
+            "vertical": { "width": 1080, "height": 1260, "ratio": "6:7", "ratioValue": 0.857, "ratioTolerance": 0.02, "source": "platform_params" },
+            "horizontal": { "width": 1080, "height": 608, "ratio": "16:9", "ratioValue": 1.7778, "ratioTolerance": 0.03, "source": "platform_params" },
+            "live": { "width": 810, "height": 1440, "source": "platform_params" },
+            "note": "横版视频在主页列表会被裁成 6:7，关键信息必须落在 6:7 中心安全区"
+          },
+          "description": { "maxChars": 1000, "collapseAfterLines": 3, "source": "channels_help" },
+          "shortTitle": { "maxChars": 16, "appearsWhenDescriptionOverChars": 16, "source": "channels_help" },
+          "imagePost": {
+            "maxImagesMobile": 9,
+            "maxImagesHelper": 18,
+            "livePhotoSupported": false,
+            "gifSupported": false,
+            "source": "channels_help"
+          },
+          "notes": [
+            "第 1 帧即默认封面，必须是完整画面（与视频线硬约束同源）。",
+            "描述超过三行自动折叠，钩子放前两行。",
+            "短标题会进入搜索/话题/订阅号消息场景，必须单独打磨。"
+          ]
+        }
+      }
+    },
+    "xiaohongshu": {
+      "label": "小红书",
+      "sources": ["xhs_creator", "xhs_third_party"],
+      "forms": {
+        "image-text": {
+          "id": "xiaohongshu/image-text",
+          "label": "小红书图文笔记",
+          "exportPath": "xiaohongshu/image-text",
+          "card": {
+            "width": 1080,
+            "height": 1440,
+            "ratio": "3:4",
+            "ratioValue": 0.75,
+            "ratioTolerance": 0.02,
+            "maxBytes": 20971520,
+            "formats": ["jpg", "jpeg", "png"],
+            "alternativeRatios": ["1:1", "4:3"],
+            "minResolution": { "width": 720, "height": 960 },
+            "source": "xhs_third_party",
+            "note": "信息流展示面积最大的是竖版 3:4（推荐 1080x1440）；1:1 与 4:3 也支持，但整篇笔记只能用一种比例。"
+          },
+          "oneRatioPerNote": {
+            "required": true,
+            "source": "xhs_third_party",
+            "note": "同一篇笔记内所有图片必须同一比例，否则滑动时会跳版；自检会比对首图比例。"
+          },
+          "noteCount": {
+            "min": 1,
+            "recommended": [6, 9],
+            "max": 18,
+            "alternateMax": 9,
+            "uncertainty": "上限口径不一：多数汇总为 18 张（2024 年由 9 张扩容），部分来源仍写 9 张。以 App 编辑器实际提示为准。",
+            "source": "xhs_third_party"
+          },
+          "title": { "maxChars": 20, "source": "xhs_third_party" },
+          "body": { "maxChars": 1000, "recommended": [100, 400], "source": "xhs_third_party" },
+          "topics": {
+            "min": 5,
+            "max": 15,
+            "alternateMax": 10,
+            "uncertainty": "话题数量口径不一：5–15 个 vs 上限 10 个。以编辑器实际提示为准。",
+            "source": "xhs_third_party"
+          },
+          "coverSameAsFirstImage": { "value": true, "note": "小红书首图即封面；本线不强制单独出封面文件，若另出则用 cover-34.jpg。" },
+          "coverOptional": { "width": 1080, "height": 1440, "ratio": "3:4", "ratioValue": 0.75, "ratioTolerance": 0.02 },
+          "bannedContent": [
+            { "pattern": "二维码", "why": "站外导流，易被限流/处罚" },
+            { "pattern": "微信|vx|vxin|wx号|加我|私信我", "why": "站外导流（导流至微信），是小红书重点打击项" },
+            { "pattern": "https?://|www\\.", "why": "正文外链一般不可点，且被视为导流风险" },
+            { "pattern": "最便宜|最有效|效果最好|全网最低|绝对有效|绝对安全|绝对可靠|第一品牌|根治|包治|无副作用|100%有效", "why": "绝对化用语，涉广告法风险" }
+          ],
+          "notes": [
+            "标题前 10–12 字就要点明核心价值，超出部分在列表页会被截断。",
+            "封面单独排版，保证 3:4 安全区内可读；信息流可能按更窄比例裁切，关键信息留在中心。",
+            "正文前 2–3 行是推荐与搜索的抓取重点，钩子放在最前。",
+            "配图不要出现其他平台水印或白边。"
+          ]
+        },
+        "video": {
+          "id": "xiaohongshu/video",
+          "label": "小红书视频笔记",
+          "exportPath": "xiaohongshu/video",
+          "video": {
+            "aspectRange": [0.33, 3.0],
+            "recommendedAspects": ["9:16"],
+            "preferred": { "width": 1080, "height": 1920, "ratio": "9:16" },
+            "durationSeconds": { "min": 1, "max": 900, "uncertainty": "时长上限口径不一（15 分钟 vs 60 分钟），以 App/网页端实际提示为准。", "source": "xhs_third_party" },
+            "maxBytes": 4294967296,
+            "minResolutionHeight": 1080,
+            "minResolutionHeightSoft": 720,
+            "fpsRange": [25, 30],
+            "codecs": ["h264"],
+            "preferredCodec": "h264",
+            "audioCodec": "aac",
+            "source": "xhs_third_party"
+          },
+          "cover": {
+            "primary": { "width": 1080, "height": 1440, "ratio": "3:4", "ratioValue": 0.75, "ratioTolerance": 0.02, "source": "xhs_third_party" },
+            "note": "视频封面建议单独做 3:4 竖版（1080x1440），不要依赖视频首帧；信息流按 3:4 展示。"
+          },
+          "title": { "maxChars": 20, "source": "xhs_third_party" },
+          "body": { "maxChars": 1000, "recommended": [50, 200], "source": "xhs_third_party" },
+          "topics": { "min": 5, "max": 15, "alternateMax": 10, "source": "xhs_third_party" },
+          "bannedContent": [
+            { "pattern": "二维码", "why": "站外导流，易被限流/处罚" },
+            { "pattern": "微信|vx|vxin|wx号|加我|私信我", "why": "站外导流（导流至微信），是小红书重点打击项" },
+            { "pattern": "https?://|www\\.", "why": "正文外链一般不可点，且被视为导流风险" },
+            { "pattern": "最便宜|最有效|效果最好|全网最低|绝对有效|绝对安全|绝对可靠|第一品牌|根治|包治|无副作用|100%有效", "why": "绝对化用语，涉广告法风险" }
+          ],
+          "notes": [
+            "9:16 竖屏占屏最大，平台最推荐；横版内容建议加黑边做成竖版。",
+            "前 3 秒决定完播，钩子必须在开头。",
+            "封面与标题同样参与点击率，封面单独做、不要用首帧。",
+            "视频内也不要出现其他平台水印与站外联系方式。"
+          ]
+        }
+      }
+    },
+    "generic": {
+      "label": "通用（自有渠道）",
+      "sources": [],
+      "forms": {
+        "product-video": {
+          "id": "generic/product-video",
+          "label": "产品片（宣传片 / 版本更新片）",
+          "exportPath": "generic/product-video",
+          "video": {
+            "aspectRange": [0.3, 3.4],
+            "durationSeconds": { "min": 1, "max": 3600 },
+            "minResolutionHeight": 720,
+            "codecs": ["h264", "hevc"],
+            "preferredCodec": "h264",
+            "requiresAudio": false,
+            "source": "video-line"
+          },
+          "cover": {
+            "ratios": [
+              { "width": 1080, "height": 1440, "ratio": "3:4" },
+              { "width": 1440, "height": 1080, "ratio": "4:3" },
+              { "width": 1920, "height": 1080, "ratio": "16:9" }
+            ],
+            "source": "video-line"
+          },
+          "notes": [
+            "本形式走 SKILL.md「通用平台 · 产品片」章节的 1–7 步，正式验收靠人工审片。",
+            "本自检只做兜底结构检查（文件存在、可探测、时长>0），不校验画幅与封面——产品片允许自由画幅。"
+          ]
+        }
+      }
+    }
+  }
+}

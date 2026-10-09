@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>小红书图文笔记 · 图集页模板（3:4 / 1080×1440）</title>
+<!--
+  小红书图文笔记 · 图集页模板
+  ─────────────────────────────────────────────────────────────
+  画布：1080×1440（3:4），与 scripts/social_specs.json 的
+        platforms.xiaohongshu.forms["image-text"].card 一一对应。
+        改尺寸请先改 specs.json，再同步本模板（tests 里有一项专门校验二者一致）。
+
+  用法：
+    · 一次渲染多张：复制 #card 块，改标题/正文/页码，或由 manifest 的 replace 注入。
+    · 导出：#card 元素截图（--manifest 里 selector 写 "#card"）。
+    · 导引元素（#safe-center / #tag-slot 的虚线）会被渲染器自动加 .hidden，不会进成图。
+
+  小红书的三条硬约束（写版式时别踩）：
+    1) 首图即封面 —— 第 1 张承担封面职责，钩子必须在最上面。
+    2) 信息流可能按更窄比例裁切 —— 关键信息压在中心安全区内（见 #safe-center）。
+    3) 整篇笔记只允许一种比例 —— 所有图都用本模板的 3:4。
+-->
+<style>
+  :root {
+    --card-w: 1080px;
+    --card-h: 1440px;
+    --ink:        #16181D;
+    --ink-soft:   #4A4F58;
+    --ink-faint:  #9AA0A8;
+    --brand:      #FF2E4D;   /* 小红书风格主色，按 DIRECTION.md 换成品牌主色 */
+    --paper:      #FFFFFF;
+    --paper-2:    #F6F7F9;
+    --pad-x:      88px;
+    --font: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+
+  html, body { margin: 0; padding: 0; background: #E9ECF1; }
+
+  /* ── 画布：尺寸的唯一出处 ───────────────────────────── */
+  #card {
+    width: var(--card-w);
+    height: var(--card-h);
+    position: relative;
+    background: var(--paper);
+    font-family: var(--font);
+    color: var(--ink);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 顶部品牌条：页码 + 账号/系列名 */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 56px var(--pad-x) 0;
+    font-size: 30px; color: var(--ink-faint); letter-spacing: 1px;
+  }
+  .topbar .series { font-weight: 600; color: var(--ink-soft); }
+  .topbar .page   { font-variant-numeric: tabular-nums; }
+
+  /* 主体 */
+  .body { flex: 1; padding: 40px var(--pad-x) 0; display: flex; flex-direction: column; justify-content: center; }
+  .kicker {
+    display: inline-block; align-self: flex-start;
+    font-size: 30px; font-weight: 600; color: var(--brand);
+    background: color-mix(in srgb, var(--brand) 10%, transparent);
+    padding: 10px 22px; border-radius: 999px; margin-bottom: 36px;
+  }
+  .headline {
+    font-size: 104px; line-height: 1.18; font-weight: 800; letter-spacing: -1px;
+    margin: 0 0 36px;
+  }
+  .headline em { font-style: normal; color: var(--brand); }
+  .deck { font-size: 40px; line-height: 1.6; color: var(--ink-soft); margin: 0; }
+
+  /* 要点列表（可选） */
+  .points { margin: 40px 0 0; padding: 0; list-style: none; }
+  .points li {
+    font-size: 36px; line-height: 1.5; color: var(--ink);
+    padding: 18px 0 18px 58px; position: relative;
+  }
+  .points li::before {
+    content: ""; position: absolute; left: 8px; top: 34px;
+    width: 22px; height: 22px; border-radius: 50%; background: var(--brand);
+  }
+
+  /* 底部：话题标签位（发布时把 #话题 填进正文，这里只做视觉占位） */
+  .footer { padding: 0 var(--pad-x) 72px; }
+  .tag-slot {
+    display: flex; flex-wrap: wrap; gap: 14px;
+    padding-top: 28px; border-top: 2px solid var(--paper-2);
+  }
+  .tag {
+    font-size: 28px; color: var(--ink-soft);
+    background: var(--paper-2); border-radius: 999px; padding: 10px 22px;
+  }
+
+  /* ── 安全区导引（导出前必须隐藏，渲染器会自动加 .hidden）── */
+  #safe-center {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 86%; height: 86%;
+    border: 3px dashed rgba(255,46,77,.55);
+    pointer-events: none;
+  }
+  #safe-center::after {
+    content: "中心安全区：信息流按更窄比例裁切时，关键信息留在这里";
+    position: absolute; left: 0; top: -46px;
+    font-size: 24px; color: rgba(255,46,77,.8);
+  }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ══════════ 1 张图卡（复制这一块做多张） ══════════ -->
+<div id="card">
+  <div class="topbar">
+    <span class="series">系列名 / 账号名</span>
+    <span class="page">01</span>
+  </div>
+
+  <div class="body">
+    <span class="kicker">先给结论</span>
+    <h1 class="headline">把打开速度<br>从 3.2 秒压到 <em>0.9 秒</em></h1>
+    <p class="deck">只做了一件事：让首屏只加载真正用到的模块。</p>
+
+    <ul class="points">
+      <li>首屏请求数从 47 个降到 12 个</li>
+      <li>首屏包体从 2.4MB 降到 680KB</li>
+      <li>实测机型：中端安卓，4G 网络</li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    <div class="tag-slot">
+      <span class="tag"># 前端性能</span>
+      <span class="tag"># 性能优化</span>
+      <span class="tag"># 实用技巧</span>
+    </div>
+  </div>
+
+  <div id="safe-center"></div>
+</div>
+
+</body>
+</html>

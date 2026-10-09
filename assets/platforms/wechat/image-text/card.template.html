@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>微信图文 · 图卡模板 3:4（1080×1440）</title>
+<!--
+  微信图文（公众号图片消息 / 小绿书）图卡模板
+  ─────────────────────────────────────────────
+  画布：1080 × 1440（3:4），与 scripts/social_specs.json 的
+        channels["wechat/image-text"].card 保持一致。
+        改尺寸请改 specs.json 再同步这里，不要只改一处。
+
+  用法：
+    1. 复制本文件到 <content-dir>/work/image-text/，每张图卡一个副本或用一个
+       数组驱动生成（推荐：保留本文件为单张模板，用 render_social_assets.mjs
+       逐个替换文案后截图）。
+    2. 从 DIRECTION.md 取主色 / 字体 / 图形母题，覆盖下面的 CSS 变量。
+    3. 页面上有三个元素：#card（整张图卡）、#safe-band（前 3 张的 2.35:1
+       中心安全区导引）、#safe-center（16:9 首图安全区导引）。
+       出图时把两个导引元素 hidden 掉——它们只是给人看的，不能进成图。
+
+  出图尺寸注意：headless Chrome 的 deviceScaleFactor 会翻倍像素。
+    必须以「读回来实测的像素尺寸」为准（check_social_delivery.py 会报），
+    不要相信这里写的 1080px。
+-->
+
+<style>
+  :root {
+    /* ↓↓↓ 从 DIRECTION.md 覆盖这三组，其余不用动 ↓↓↓ */
+    --paper:      #FBFAF7;   /* 底色：暖纸（本模板自带的默认，可按 DIRECTION.md 覆盖） */
+    --ink:        #16181D;   /* 主文字 */
+    --ink-soft:   #5A5F68;   /* 次级文字 */
+    --primary:    #2F6BFF;   /* 主色 */
+    --primary-dim: rgba(47,107,255,.10);
+    --hairline:   rgba(22,24,29,.10);
+    /* ↑↑↑ */
+
+    --card-w: 1080px;
+    --card-h: 1440px;
+    --pad: 96px;             /* 安全边距，与视频线的 96px 同源 */
+    --font-cn: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    --font-en: "Inter", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    --font-num: "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    background: #E8E8E6;
+    font-family: var(--font-cn);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* 2.35:1 中心安全区：y = (1440 - 1080/2.35) / 2 ≈ 490 → 950 */
+  #safe-band {
+    position: absolute; left: 0; right: 0;
+    top: 490px; height: 460px;
+    outline: 2px dashed rgba(255,60,60,.75);
+    background: rgba(255,60,60,.05);
+    pointer-events: none; z-index: 50;
+  }
+  /* 16:9 首图安全区：y = (1440 - 1080*9/16) / 2 = 416 → 1024 */
+  #safe-center {
+    position: absolute; left: 0; right: 0;
+    top: 416px; height: 608px;
+    outline: 2px dashed rgba(255,140,0,.6);
+    pointer-events: none; z-index: 49;
+  }
+  .hidden { display: none !important; }
+
+  /* ───────────────────────── 图卡本体 ───────────────────────── */
+  #card {
+    position: relative;
+    width: var(--card-w);
+    height: var(--card-h);
+    background: var(--paper);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 主视觉区：从 DIRECTION.md 的图形母题改写，不要照搬视频线的动态手法 */
+  .visual {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(120% 80% at 88% 6%, var(--primary-dim) 0%, transparent 58%),
+      linear-gradient(180deg, transparent 0%, transparent 62%, rgba(22,24,29,.035) 100%);
+    pointer-events: none;
+  }
+  .grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(var(--hairline) 1px, transparent 1px),
+      linear-gradient(90deg, var(--hairline) 1px, transparent 1px);
+    background-size: 120px 120px;
+    mask-image: linear-gradient(180deg, #000 0%, #000 34%, rgba(0,0,0,.35) 52%, transparent 72%);
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 34%, rgba(0,0,0,.35) 52%, transparent 72%);
+    pointer-events: none;
+  }
+
+  /* 三段式：眉标 / 主体 / 页脚 */
+  .header {
+    position: relative; z-index: 5;
+    padding: var(--pad) var(--pad) 0;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .eyebrow {
+    font-family: var(--font-en);
+    font-size: 30px; font-weight: 600; letter-spacing: 2.4px;
+    text-transform: uppercase;
+    color: var(--primary);
+  }
+  .step {
+    font-family: var(--font-num);
+    font-size: 30px; font-weight: 500;
+    color: var(--ink-soft);
+    letter-spacing: 1px;
+  }
+
+  .body {
+    position: relative; z-index: 5;
+    flex: 1;
+    padding: 0 var(--pad);
+    display: flex; flex-direction: column; justify-content: center;
+    gap: 40px;
+  }
+
+  /* 标题：图上正文 ≥32px、标题 ≥72px（真实图片像素），1280 宽画布下更宽松 */
+  .title {
+    font-size: 96px;
+    line-height: 1.16;
+    font-weight: 800;
+    letter-spacing: -1px;
+    color: var(--ink);
+    max-width: 880px;
+  }
+  .title em { font-style: normal; color: var(--primary); }
+
+  /* 大数字/关键结论，可选 */
+  .metric {
+    font-family: var(--font-num);
+    font-size: 108px; font-weight: 700;
+    color: var(--primary);
+    line-height: 1;
+    letter-spacing: -2px;
+  }
+
+  .desc {
+    font-size: 40px;
+    line-height: 1.62;
+    color: var(--ink-soft);
+    max-width: 860px;
+    font-weight: 400;
+  }
+  .desc strong { color: var(--ink); font-weight: 700; }
+
+  /* 清单式图卡用这个，不是清单就用不到 */
+  .bullets { display: flex; flex-direction: column; gap: 26px; }
+  .bullet {
+    display: flex; align-items: flex-start; gap: 22px;
+    font-size: 40px; line-height: 1.5; color: var(--ink);
+  }
+  .dot {
+    flex: none; width: 14px; height: 14px; border-radius: 50%;
+    background: var(--primary);
+    margin-top: 22px;
+  }
+
+  .footer {
+    position: relative; z-index: 5;
+    padding: 0 var(--pad) var(--pad);
+    display: flex; align-items: flex-end; justify-content: space-between;
+  }
+  .brand {
+    font-family: var(--font-en);
+    font-size: 30px; font-weight: 600; letter-spacing: 1.6px;
+    color: var(--ink-soft);
+  }
+  .pager {
+    font-family: var(--font-num);
+    font-size: 30px; color: var(--ink-soft); letter-spacing: 2px;
+  }
+  /* 进度点：横滑顺序的可视化，第 n 张亮第 n 个 */
+  .dots { display: flex; gap: 12px; align-items: center; }
+  .dots i {
+    display: block; width: 12px; height: 12px; border-radius: 50%;
+    background: var(--hairline);
+  }
+  .dots i.on { background: var(--primary); width: 34px; border-radius: 6px; }
+</style>
+</head>
+<body>
+
+<div id="safe-band"></div>
+<div id="safe-center" class="hidden"></div>
+
+<!-- ══════════════ 图卡：截图这个元素 ══════════════ -->
+<div id="card">
+  <div class="visual"></div>
+  <div class="grid"></div>
+
+  <div class="header">
+    <div class="eyebrow"><!-- 眉标：品类 / 章节名，例如 RELEASE v0.11 --></div>
+    <div class="step"><!-- 右上角：例如 01 / 08 --></div>
+  </div>
+
+  <div class="body">
+    <!-- ① 标题型（默认）：一个观点，说到位就停 -->
+    <div class="title"><!-- 标题 --></div>
+    <!-- ② 数字型：删掉 .title 用这个
+    <div class="metric">48&#8202;MB</div> -->
+    <!-- ③ 说明句：图上文字建议 ≤60 字 -->
+    <div class="desc"><!-- 说明 --></div>
+    <!-- ④ 清单型：删掉 .desc 用这个
+    <div class="bullets">
+      <div class="bullet"><span class="dot"></span><span>第一条</span></div>
+      <div class="bullet"><span class="dot"></span><span>第二条</span></div>
+      <div class="bullet"><span class="dot"></span><span>第三条</span></div>
+    </div> -->
+  </div>
+
+  <div class="footer">
+    <div class="brand"><!-- 品牌名 --></div>
+    <div class="dots">
+      <i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+    </div>
+    <div class="pager"><!-- 01/08 --></div>
+  </div>
+</div>
+<!-- ═══════════════════════════════════════════════ -->
+
+<script>
+  // 本地预览辅助：?guides=band|center|both|none 切换安全区导引；?card=1 显示进度点。
+  // 出图脚本会忽略这些，直接把两个导引元素加 .hidden。
+  (function () {
+    const q = new URLSearchParams(location.search);
+    const g = q.get('guides') || 'both';
+    if (g === 'none') {
+      document.getElementById('safe-band').classList.add('hidden');
+      document.getElementById('safe-center').classList.add('hidden');
+    } else if (g === 'band') {
+      document.getElementById('safe-center').classList.add('hidden');
+    } else if (g === 'center') {
+      document.getElementById('safe-band').classList.add('hidden');
+    }
+  })();
+</script>
+</body>
+</html>

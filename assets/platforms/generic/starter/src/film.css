@@ -1,0 +1,22 @@
+/* 影片层。每一支片子在这里写自己的画面设计系统（从 DIRECTION.md 来）；
+   下面只保留所有片子都需要的机制。 */
+* { box-sizing:border-box; }
+html,body { margin:0; background:#000; }
+#film { position:relative; width:1920px; height:1080px; overflow:hidden; background:#0b0b0b; color:#f5f5f5; font-family:"PingFang SC","Noto Sans CJK SC",sans-serif; }
+/* 影片时钟独占运动：冻结 CSS transition / animation，任何一帧都能单独渲染出来 */
+#film *, #film *::before, #film *::after { transition:none !important; animation-duration:0s !important; animation-delay:0s !important; }
+.shot { position:absolute; inset:0; overflow:hidden; opacity:0; visibility:hidden; }
+.split { display:inline-block; white-space:pre-wrap; }
+.split .u { display:inline-block; }
+.product-root { position:relative; }
+.film-cursor { position:absolute; left:0; top:0; z-index:80; pointer-events:none; opacity:0; }
+.film-cursor svg { position:relative; z-index:2; display:block; transform-origin:6px 3px; filter:drop-shadow(0 2px 4px rgba(0,0,0,.35)); }
+.film-ripple { position:absolute; left:-12px; top:-15px; width:40px; height:40px; border-radius:50%; background:rgba(127,127,127,.25); border:1.5px solid rgba(127,127,127,.6); opacity:0; }
+
+/* 技术样片专用；正式片子的每一镜按 DIRECTION.md 另写 */
+.sample-title { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; padding-left:160px; }
+.sample-title .en { font-family:Georgia,serif; font-size:120px; }
+.sample-title .zh { font-size:56px; margin-top:20px; color:#bbb; }
+.sample-component { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+.neutral-fixture { width:900px; padding:60px; border:1px solid #444; border-radius:20px; background:#161616; }
+.neutral-fixture h2 { font-size:48px; margin:20px 0; } .neutral-fixture p { font-size:28px; color:#aaa; } .fx-label { font-size:20px; letter-spacing:.2em; color:#888; }

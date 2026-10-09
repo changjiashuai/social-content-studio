@@ -1,0 +1,9 @@
+// 静态路由替身：片子里永远不会真的导航。
+const router = {push() {}, replace() {}, back() {}, forward() {}, refresh() {}, prefetch() {}};
+
+export const useRouter = () => router;
+export const usePathname = () => '/chat';
+export const useSearchParams = () => new URLSearchParams();
+export const useParams = () => ({});
+export const redirect = () => {};
+export const notFound = () => {};

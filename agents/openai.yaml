@@ -1,0 +1,4 @@
+interface:
+  display_name: "社交内容工坊 social-content-studio"
+  short_description: "两级路由的多平台内容生产：先选平台（微信 / 小红书 / 通用）再选内容形式，覆盖图文、公众号长文、视频号、小红书笔记，以及代码驱动的产品宣传片与版本更新片"
+  default_prompt: "请使用 $social-content-studio 生产内容。先问我投放哪些平台，再问每个平台要哪种形式（两级都可多选），然后按『事实源 → 静态切片 → 动态切片』的顺序执行。"

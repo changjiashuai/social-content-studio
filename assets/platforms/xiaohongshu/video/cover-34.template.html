@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>小红书视频封面模板（3:4 / 1080×1440）</title>
+<!--
+  小红书视频笔记 · 封面模板
+  ─────────────────────────────────────────────────────────────
+  画布：1080×1440（3:4），对应 scripts/social_specs.json 的
+        platforms.xiaohongshu.forms.video.cover.primary。
+
+  为什么视频要单独做封面：
+    · 小红书视频封面不默认用首帧，信息流按 3:4 展示，首帧比例往往对不上；
+    · 封面与标题一起决定点击率，封面上的「大字结论 + 主体物」比首帧有效得多。
+    所以本线要求视频笔记额外出 cover-34.jpg，而不是从成片里抓帧。
+
+  导出：#cover 元素截图，输出 export/xiaohongshu/video/cover-34.jpg。
+-->
+<style>
+  :root {
+    --ink:       #FFFFFF;
+    --ink-soft:  rgba(255,255,255,.82);
+    --brand:     #FF2E4D;
+    --bg-1:      #12141A;
+    --bg-2:      #1D2130;
+    --pad-x:     96px;
+    --font: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+
+  html, body { margin: 0; padding: 0; background: #E9ECF1; }
+
+  #cover {
+    width: 1080px;
+    height: 1440px;
+    position: relative;
+    font-family: var(--font);
+    color: var(--ink);
+    overflow: hidden;
+    background:
+      radial-gradient(120% 80% at 20% 0%, rgba(255,46,77,.28) 0%, transparent 60%),
+      linear-gradient(160deg, var(--bg-2) 0%, var(--bg-1) 100%);
+    display: flex; flex-direction: column; justify-content: flex-end;
+  }
+
+  /* 顶部品牌角标 */
+  .brand {
+    position: absolute; top: 64px; left: var(--pad-x);
+    display: flex; align-items: center; gap: 18px;
+    font-size: 30px; letter-spacing: 2px; color: var(--ink-soft);
+  }
+  .brand .dot { width: 20px; height: 20px; border-radius: 50%; background: var(--brand); }
+
+  /* 主体文案区（信息全部压在中心安全区内） */
+  .copy { padding: 0 var(--pad-x) 132px; }
+  .ruled {
+    display: inline-block; font-size: 32px; font-weight: 700; letter-spacing: 2px;
+    color: var(--brand); margin-bottom: 30px;
+  }
+  .title {
+    font-size: 122px; line-height: 1.14; font-weight: 800; letter-spacing: -2px;
+    margin: 0 0 32px; text-shadow: 0 6px 40px rgba(0,0,0,.45);
+  }
+  .title em { font-style: normal; color: var(--brand); }
+  .sub { font-size: 42px; line-height: 1.5; color: var(--ink-soft); margin: 0; }
+
+  /* 底部渐变 scrim：保证文字在任何底图上都可读（沿用视频线第 26 条思路） */
+  .scrim {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 620px;
+    background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.62) 62%, rgba(0,0,0,.78) 100%);
+    pointer-events: none;
+  }
+  .copy, .brand { position: relative; z-index: 2; }
+
+  /* ── 安全区导引（导出前隐藏）── */
+  #safe-center {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 86%; height: 86%;
+    border: 3px dashed rgba(255,255,255,.5);
+    z-index: 3; pointer-events: none;
+  }
+  #safe-center::after {
+    content: "中心安全区：封面主体与大标题留在这里";
+    position: absolute; left: 0; top: -46px; font-size: 24px; color: rgba(255,255,255,.7);
+  }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div id="cover">
+  <div class="brand"><span class="dot"></span><span>账号名 / SERIES</span></div>
+
+  <div class="scrim"></div>
+
+  <div class="copy">
+    <span class="ruled">实测 / 教程</span>
+    <h1 class="title">首屏快 <em>3 倍</em><br>我只改了一个配置</h1>
+    <p class="sub">中端安卓 + 4G 实测，附完整步骤</p>
+  </div>
+
+  <div id="safe-center"></div>
+</div>
+
+</body>
+</html>

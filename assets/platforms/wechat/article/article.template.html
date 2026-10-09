@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>公众号长文 · 正文片段模板（内联样式，可直接粘贴后台）</title>
+<!--
+  公众号长文模板 · 分两段
+  ─────────────────────────────────────────────
+  【A 段】下面的 <style> 只服务于「本机预览」。它不会进成图、也不会粘贴进公众号。
+          —— 公众号后台会剥离 <style> 块，所以预览好看不代表粘贴后好看，
+             必须靠 B 段的自带内联样式。
+
+  【B 段】`微信正文片段 · 开始 / 结束` 之间是可交付内容。
+          规则（来自 scripts/social_specs.json 的 htmlWhitelist，违反会被后台清洗）：
+            ✗ <style> / <script> / 外链 CSS / @media / @keyframes
+            ✗ position / onclick 等事件属性
+            ✗ id 属性（被剥离）；class 会被保留但不应用样式 → 样式必须写在内联 style
+            ✗ iframe / form / input / audio / video（音视频用 mpvoice / mpvideo）
+            ✗ img 的 src 用本地路径 / 外链 / base64 → 必须换成 mmbiz.qpic.cn 素材库地址
+            ✓ 用 px / vw / vh，不要用 % 做高度或位移
+            ✓ 保留标签：p section span strong em u br blockquote ul ol li h1-h6 table 系列 img a hr
+
+  交付流程：
+    1. 把 B 段的 meta 区留空（标题/摘要/作者写进 export/wechat/mp-article/meta.json，由你手工填后台）
+    2. 把 {{...}} 占位符替换成真实内容
+    3. 所有 __UPLOAD_TO_MP_ASSET_LIBRARY__ 在后台「素材管理」上传图片后，替换为 mmbiz.qpic.cn 地址
+    4. 跑 python3 <skill-dir>/scripts/check_social_delivery.py --project <content-dir> --forms wechat/mp-article --strict
+    5. 手机预览再群发
+-->
+
+<style>
+  /* 仅本机预览用，不进交付物 */
+  body { margin: 0; background: #EDEDED; font-family: -apple-system, "PingFang SC", sans-serif; }
+  .preview-shell { width: 420px; margin: 40px auto; background: #fff; padding: 24px 20px 48px;
+                   border-radius: 12px; box-shadow: 0 8px 28px rgba(0,0,0,.08); }
+  .preview-note { width: 420px; margin: 0 auto 16px; font-size: 12px; color: #888; line-height: 1.7; }
+  .marker { width: 420px; margin: 28px auto; font: 600 12px/1 -apple-system, sans-serif;
+            color: #B23; letter-spacing: 1.5px; text-align: center; }
+</style>
+</head>
+<body>
+
+<p class="preview-note">
+  本机预览用 420px 窄容器模拟手机宽度。真正要看效果请走公众号后台的<b>手机预览</b>——
+  后台会清洗样式，桌面预览看不出问题。
+</p>
+
+<div class="preview-shell">
+
+<!-- ═══════════════ 微信正文片段 · 开始（以下整段复制粘贴） ═══════════════ -->
+
+<!-- ① 导语：结论前置。开头 54 字会变成默认摘要，所以要能独立成立。 -->
+<p style="font-size:16px; line-height:1.8; color:#3f3f3f; letter-spacing:0.3px; margin:0 0 20px;">
+  {{一句话结论：发布了什么 + 对谁有用 + 关键数字。这前 54 个字会被系统当成默认摘要，请让它能独立成立。}}
+</p>
+
+<p style="font-size:16px; line-height:1.8; color:#3f3f3f; letter-spacing:0.3px; margin:0 0 20px;">
+  {{背景与痛点：用户遇到的真实问题，不要写「随着AI时代到来」。}}
+</p>
+
+<!-- ② 二级标题：h2 也是保留标签，可以直接用；样式仍要写内联 -->
+<h2 style="font-size:20px; font-weight:700; color:#111111; line-height:1.4; letter-spacing:0.4px; margin:32px 0 16px; border-left:4px solid #2F6BFF; padding-left:12px;">
+  {{二级标题}}
+</h2>
+
+<p style="font-size:16px; line-height:1.8; color:#3f3f3f; letter-spacing:0.3px; margin:0 0 20px;">
+  {{正文段落。论点 = 结论 + 证据 + 对用户意味着什么。每段别超过 5 行。}}
+</p>
+
+<!-- ③ 图片：src 必须换成素材库地址。width:100% + display:block 是稳妥写法。 -->
+<img src="__UPLOAD_TO_MP_ASSET_LIBRARY__"
+     alt="{{图片说明，也作为无障碍文本}}"
+     style="width:100%; max-width:100%; display:block; border-radius:8px; margin:20px 0;">
+
+<!-- ④ 引用块：左边线用主色，注意公众号会默认给 blockquote 一个左边线，这里显式覆盖 -->
+<blockquote style="border-left:3px solid #2F6BFF; background-color:#F7F9FF; padding:12px 16px; margin:20px 0; color:#555555; font-size:15px; line-height:1.75;">
+  {{需要强调的一句结论或关键数据。}}
+</blockquote>
+
+<!-- ⑤ 列表：用 ul/ol 而不是手工打「·」，公众号保留 li -->
+<ul style="margin:20px 0; padding-left:22px; font-size:16px; line-height:1.8; color:#3f3f3f;">
+  <li style="margin-bottom:8px;">{{要点一}}</li>
+  <li style="margin-bottom:8px;">{{要点二}}</li>
+  <li style="margin-bottom:8px;">{{要点三}}</li>
+</ul>
+
+<!-- ⑥ 代码 / 命令：注意行内不要有 <style>，且 &lt; 要转义 -->
+<p style="background-color:#F5F5F7; border-radius:6px; padding:12px 16px; margin:20px 0; font-family:Menlo,Consolas,monospace; font-size:14px; line-height:1.7; color:#2a2a2a; word-break:break-all;">
+  {{可复制的命令或配置}}
+</p>
+
+<!-- ⑦ 对比数据表：table 系列标签保留；表格要自带边框样式，公众号不注入表格样式 -->
+<table style="width:100%; border-collapse:collapse; margin:20px 0; font-size:14px; line-height:1.6;">
+  <thead>
+    <tr>
+      <th style="border:1px solid #E6E6E6; background-color:#F7F7F8; padding:8px 10px; text-align:left; color:#333333; font-weight:700;">{{项目}}</th>
+      <th style="border:1px solid #E6E6E6; background-color:#F7F7F8; padding:8px 10px; text-align:left; color:#333333; font-weight:700;">{{改动前}}</th>
+      <th style="border:1px solid #E6E6E6; background-color:#F7F7F8; padding:8px 10px; text-align:left; color:#333333; font-weight:700;">{{改动后}}</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border:1px solid #E6E6E6; padding:8px 10px; color:#3f3f3f;">{{指标}}</td>
+      <td style="border:1px solid #E6E6E6; padding:8px 10px; color:#3f3f3f;">{{数值}}</td>
+      <td style="border:1px solid #E6E6E6; padding:8px 10px; color:#2F6BFF; font-weight:700;">{{数值}}</td>
+    </tr>
+  </tbody>
+</table>
+
+<p style="font-size:13px; line-height:1.7; color:#999999; margin:0 0 20px;">
+  {{数据口径说明：测量环境、样本量、时间。这一句不要为了版面删掉——删了这条，整篇文章的可信度就靠读者自己猜。}}
+</p>
+
+<!-- ⑧ 分隔 -->
+<hr style="border:none; border-top:1px solid #EEEEEE; margin:28px 0;">
+
+<h2 style="font-size:20px; font-weight:700; color:#111111; line-height:1.4; margin:32px 0 16px; border-left:4px solid #2F6BFF; padding-left:12px;">
+  怎么用
+</h2>
+
+<p style="font-size:16px; line-height:1.8; color:#3f3f3f; letter-spacing:0.3px; margin:0 0 20px;">
+  {{可照做的步骤，一步一行，别把步骤藏在段落里。}}
+</p>
+
+<!-- ⑨ 收口：总结 + 引导。链接用 a 标签，外链会触发微信安全提醒页，这是正常的 -->
+<p style="font-size:16px; line-height:1.8; color:#3f3f3f; letter-spacing:0.3px; margin:0 0 20px;">
+  {{一句总结。}}想看完整对比数据可以看
+  <a href="{{https://...}}" style="color:#2F6BFF; text-decoration:none; border-bottom:1px solid #2F6BFF;">{{链接文字}}</a>。
+</p>
+
+<p style="font-size:14px; line-height:1.8; color:#999999; margin:24px 0 0; text-align:center; letter-spacing:1px;">
+  {{品牌名 · 一句 slogan}}
+</p>
+
+<!-- ═══════════════ 微信正文片段 · 结束 ═══════════════ -->
+
+</div>
+
+<div class="marker">↑ 以上整段（含注释之外的标签）复制进公众号正文编辑器 ↑</div>
+
+</body>
+</html>

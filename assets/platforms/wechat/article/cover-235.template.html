@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>公众号头条封面 2.35:1（900×383）</title>
+<!--
+  公众号头条封面模板 · 2.35:1 · 900×383
+  ─────────────────────────────────────────────
+  尺寸来源：scripts/social_specs.json → channels["wechat/mp-article"].cover.headline
+
+  三条设计约束（踩了标题就不可读）：
+    1. 推送两条及以上时，头条标题会被叠压在封面图上 → 下半部与中心区必须低干扰。
+    2. 单独推送一条时，标题显示在封面下方 → 此时可以把标题写进封面。
+       所以模板把标题放在**上 2/3**：两种情况都能用。
+    3. 转发时的链接卡片缩略图只能在封面区域内选取 → 想让它显示不同画面，
+       在主封面下方再放一块 1:1 方形图（见被注释的 .thumb-square）。
+
+  出图：截图 #cover 元素。截图后实测像素必须是 900×383（或同比例更大），
+        deviceScaleFactor 会翻倍，以实测为准。
+-->
+
+<style>
+  :root {
+    /* ↓↓↓ 从 DIRECTION.md 覆盖 ↓↓↓ */
+    --paper:    #FBFAF7;
+    --ink:      #16181D;
+    --ink-soft: #5A5F68;
+    --primary:  #2F6BFF;
+    --font-cn: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    --font-en: "Inter", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #E8E8E6; }
+  .hidden { display: none !important; }
+
+  #cover {
+    position: relative;
+    width: 900px; height: 383px;
+    background: var(--paper);
+    overflow: hidden;
+    font-family: var(--font-cn);
+  }
+
+  /* 主视觉：从 DIRECTION.md 的图形母题改写 */
+  .visual {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(90% 130% at 92% 12%, rgba(47,107,255,.16) 0%, transparent 60%),
+      linear-gradient(180deg, transparent 58%, rgba(22,24,29,.05) 100%);
+  }
+  .grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(22,24,29,.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(22,24,29,.08) 1px, transparent 1px);
+    background-size: 76px 76px;
+    mask-image: linear-gradient(180deg, #000 0%, #000 40%, transparent 82%);
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 40%, transparent 82%);
+  }
+
+  /* 文字区：上 2/3，左对齐 —— 大标题类封面左对齐比居中更稳 */
+  .text {
+    position: absolute; z-index: 5;
+    left: 56px; right: 56px; top: 54px;
+    max-width: 620px;
+  }
+  .eyebrow {
+    font-family: var(--font-en);
+    font-size: 15px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--primary);
+    margin-bottom: 14px;
+  }
+  .title {
+    font-size: 46px; line-height: 1.18; font-weight: 800;
+    letter-spacing: -0.6px; color: var(--ink);
+  }
+  .title em { font-style: normal; color: var(--primary); }
+  .sub {
+    margin-top: 14px; font-size: 18px; line-height: 1.5;
+    color: var(--ink-soft); max-width: 560px;
+  }
+
+  /* 右下角：品牌 / 期号，压在低干扰区 */
+  .stamp {
+    position: absolute; z-index: 5;
+    right: 56px; bottom: 34px;
+    font-family: var(--font-en);
+    font-size: 15px; font-weight: 600; letter-spacing: 1.4px;
+    color: var(--ink-soft);
+  }
+  .stamp b { color: var(--primary); }
+</style>
+</head>
+<body>
+
+<!-- ══════ 截图这个元素 → cover-235.jpg ══════ -->
+<div id="cover">
+  <div class="visual"></div>
+  <div class="grid"></div>
+
+  <div class="text">
+    <div class="eyebrow">Release Notes</div>
+    <div class="title">安装体积砍到 <em>48MB</em>，冷启动快 2 秒</div>
+    <div class="sub">一次打包器重写，换来首屏只拉起真正用到的模块。</div>
+  </div>
+
+  <div class="stamp">{{品牌名}} · <b>v0.11</b></div>
+</div>
+<!-- ══════════════════════════════════════════ -->
+
+<!--
+  可选：转发缩略图专用 1:1 方形图。
+  在主封面下方另放一块 500×500，后台选缩略图时框选它，转发卡片就会显示不同画面。
+  <div id="thumb-square" style="position:relative;width:500px;height:500px;margin-top:24px;background:var(--paper);">
+    …同样结构…
+  </div>
+-->
+
+</body>
+</html>

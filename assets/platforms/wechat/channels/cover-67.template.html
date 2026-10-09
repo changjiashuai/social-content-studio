@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>视频号封面 6:7（1080×1260）</title>
+<!--
+  视频号封面模板 · 竖版 1080×1260（6:7）
+  ─────────────────────────────────────────────
+  尺寸来源：scripts/social_specs.json → channels["wechat/channels"].cover.vertical
+
+  为什么必须有这个模板：
+    · 视频号主页列表把封面统一按 **6:7** 展示。横版视频（16:9）的封面在这里
+      会被裁成 6:7，信息容易错位 —— 所以横版也要单独出一张 6:7 封面。
+    · 视频号封面默认取视频第 1 帧，所以视频线的硬约束「首帧就是完整画面」
+      在这里是强制的：第 1 帧不能是空白底色或等待入场的背景。
+
+  中心安全区（#safe-169）：
+    横版封面 1080×608 裁进 6:7 时，纵向只保留中间 608px。
+    所以标题与关键数字必须落在 y = (1260-608)/2 = 326 → 934 之间。
+    本地预览加 ?guides=169 打开导引核对。
+
+  深底封面记得给 HUD/深色纹理所覆盖的位置压暗（视频线第 26 条），
+  否则白色文字压在亮色图形上不可读。
+-->
+<style>
+  :root {
+    /* ↓↓↓ 从 DIRECTION.md 覆盖 ↓↓↓ */
+    --paper:    #0E1015;   /* 深底：视频号信息流里深底封面更跳 */
+    --ink:      #FFFFFF;
+    --ink-soft: rgba(255,255,255,.60);
+    --primary:  #6E9BFF;
+    --font-cn: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    --font-en: "Inter", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #1A1A18; }
+  .hidden { display: none !important; }
+
+  #cover {
+    position: relative;
+    width: 1080px; height: 1260px;
+    background: var(--paper);
+    overflow: hidden;
+    font-family: var(--font-cn);
+  }
+
+  /* 横版封面(1080x608)裁进 6:7 时保留的纵向范围 */
+  #safe-169 {
+    position: absolute; left: 0; right: 0;
+    top: 326px; height: 608px;
+    outline: 2px dashed rgba(255,140,0,.7);
+    pointer-events: none; z-index: 60;
+  }
+
+  /* 主视觉：从 DIRECTION.md 的图形母题改写，别照搬视频线动态手法 */
+  .visual {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(84% 46% at 78% 8%,  rgba(110,155,255,.34) 0%, transparent 64%),
+      radial-gradient(96% 44% at 12% 96%, rgba(110,155,255,.16) 0%, transparent 60%);
+  }
+  .grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.055) 1px, transparent 1px);
+    background-size: 108px 108px;
+    mask-image: linear-gradient(180deg, #000 0%, #000 40%, rgba(0,0,0,.4) 62%, transparent 84%);
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 40%, rgba(0,0,0,.4) 62%, transparent 84%);
+  }
+  /* 顶部 HUD 压暗层：白色小字/标签压在任何亮色图案上都靠它 */
+  .hudscrim {
+    position: absolute; left: 0; right: 0; top: 0; height: 210px;
+    background: linear-gradient(180deg, rgba(8,9,12,.86) 0%, rgba(8,9,12,.42) 55%, transparent 100%);
+  }
+
+  /* 眉标 HUD */
+  .hud {
+    position: absolute; z-index: 5;
+    left: 88px; right: 88px; top: 84px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: var(--font-en);
+    font-size: 28px; font-weight: 700; letter-spacing: 2.6px;
+    text-transform: uppercase; color: var(--ink);
+  }
+  .hud .dot-live {
+    display: inline-flex; align-items: center; gap: 12px;
+    color: var(--primary);
+  }
+  .hud .dot-live::before {
+    content: ""; width: 14px; height: 14px; border-radius: 50%;
+    background: var(--primary); box-shadow: 0 0 0 6px rgba(110,155,255,.22);
+  }
+
+  /* 主文案区：重心放在 y=326..934 安全区内 */
+  .body {
+    position: absolute; z-index: 5;
+    left: 88px; right: 88px; top: 372px;
+  }
+  .kicker {
+    font-size: 34px; font-weight: 600; letter-spacing: 1px;
+    color: var(--ink-soft); margin-bottom: 26px;
+  }
+  .title {
+    font-size: 116px; line-height: 1.08; font-weight: 800;
+    letter-spacing: -2.5px; color: var(--ink);
+    max-width: 900px;
+  }
+  .title em { font-style: normal; color: var(--primary); }
+  .sub {
+    margin-top: 34px; font-size: 42px; line-height: 1.45;
+    color: var(--ink-soft); max-width: 840px; font-weight: 400;
+  }
+
+  /* 底部：品牌 + 时长，属低干扰装饰，不承担信息 */
+  .foot {
+    position: absolute; z-index: 5;
+    left: 88px; right: 88px; bottom: 92px;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    font-family: var(--font-en);
+    font-size: 30px; font-weight: 600; letter-spacing: 1.6px;
+    color: var(--ink-soft);
+  }
+  .foot b { color: var(--primary); }
+
+  /* 游戏/演示类内容想要底部字幕条时的底座 */
+  .caption-bar {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 210px; z-index: 4;
+    background: linear-gradient(180deg, transparent 0%, rgba(8,9,12,.78) 46%, rgba(8,9,12,.94) 100%);
+  }
+</style>
+</head>
+<body>
+
+<div id="safe-169" class="hidden"></div>
+
+<!-- ══════ 截图这个元素 → cover-67.jpg （同时可裁出 cover-169.jpg） ══════ -->
+<div id="cover">
+  <div class="visual"></div>
+  <div class="grid"></div>
+  <div class="hudscrim"></div>
+  <div class="caption-bar"></div>
+
+  <div class="hud">
+    <div class="dot-live">Release v0.11</div>
+    <div>00:42</div>
+  </div>
+
+  <div class="body">
+    <div class="kicker">一次打包器重写</div>
+    <div class="title">冷启动<em>快 2 秒</em></div>
+    <div class="sub">安装体积从 220MB 降到 48MB，首屏只拉起真正用到的模块。</div>
+  </div>
+
+  <div class="foot">
+    <span>{{品牌名}}</span>
+    <span><b>#</b> 打包优化</span>
+  </div>
+</div>
+<!-- ═════════════════════════════════════════════════════════════════════ -->
+
+<script>
+  // 本地预览：?guides=169 显示横版→6:7 的裁切安全区。出图时必须保持 hidden。
+  if (new URLSearchParams(location.search).get('guides') === '169') {
+    document.getElementById('safe-169').classList.remove('hidden');
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,187 @@
+/* ============================================================================
+   Frame Kit —— 「纸墨」默认样式
+   Copyright (C) 2026 changjiashuai · AGPL-3.0（随本 skill 主协议）
+
+   设计取向：把宣传画面当作「一张纸」来处理。
+     · 纸面（.film-card-surface）= 可见的承载体，靠 1px 细线收边，不用发光。
+     · 纸叠（.film-card-frame）= 纸面之下的投影层：一条硬边的落影 + 一段紧贴的接触影，
+       形成"叠了一页"的层次，而不是一圈弥散的柔光。
+     · 强调色只出现在小面积（徽标、强调细线），大面积一律留给产品自己的界面。
+
+   对外契约（**刻意保留的兼容名**，本文件值与结构为原创）：
+     · 类名 .film-theme / .film-card-frame / .film-card-surface
+             .film-button / .film-badge / .film-divider / .film-rule
+     · 变量 --film-*（故事文案分册按名引用 --film-font-en / --film-font-zh）
+     · 色调 --film-theme 默认浅色；data-tone="ink"（兼容写法 "dark"）转深色
+   容器级放宽：--film-shadow / --film-radius / --film-font-en / --film-font-zh
+   可从影片侧覆盖，用于按 DIRECTION.md 调整画面规范。
+   ========================================================================== */
+
+.film-theme {
+  color-scheme: light;
+
+  /* ── 色调：纸白 ───────────────────────────────────────────── */
+  --film-bg:          #f2ede3;   /* 画布底：暖纸 */
+  --film-fg:          #1a1917;   /* 正文：墨 */
+  --film-muted:       #6e675a;   /* 次级文字 / 说明 */
+  --film-surface:     #fffcf5;   /* 纸面 */
+  --film-soft:        #e7e0cf;   /* 内嵌块底 */
+  --film-border:        #ddd4c0;   /* 细线（默认描边） */
+  --film-border-strong: #c4b99e;   /* 加重细线 */
+
+  /* ── 强调 ─────────────────────────────────────────────────── */
+  --film-accent:      #1a1917;   /* 主强调：墨（用于实心按钮） */
+  --film-on-accent:   #fffcf5;   /* 压在主强调上的文字 */
+  --film-accent-2:    #8a6f3f;   /* 次强调：青铜，只用于徽标与短线 */
+  --film-focus:       #2b6b5f;   /* 键盘焦点环 */
+
+  /* ── 几何 ─────────────────────────────────────────────────── */
+  --film-radius-lg:     20px;    /* 卡片 / 纸面 */
+  --film-radius-sm:     10px;    /* 内嵌块 / 控件 */
+  --film-radius-pill:   999px;   /* 按钮 / 徽标 */
+  --film-radius:        var(--film-radius-lg);   /* 兼容别名 */
+  --film-hairline:      1px;
+
+  /* 纸叠：硬边落影 + 接触影（深色下由下方变量块覆盖为更重的黑） */
+  --film-lift-edge:  0 1px 0 0 var(--film-border-strong);
+  --film-lift-cast:  0 18px 36px -22px rgb(26 25 23 / 46%);
+  --film-lift-touch: 0 2px 6px -3px rgb(26 25 23 / 20%);
+  --film-shadow: var(--film-lift-edge), var(--film-lift-cast), var(--film-lift-touch);
+
+  /* ── 字体分工 ─────────────────────────────────────────────── */
+  --film-font-zh: "Source Han Sans SC", "Noto Sans CJK SC", "PingFang SC",
+                  "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --film-font-en: "Iowan Old Style", "Palatino Linotype", Palatino,
+                  "Book Antiqua", Georgia, serif;
+  --film-sans: var(--film-font-zh);   /* 兼容别名 */
+
+  font-family: var(--film-sans);
+  color: var(--film-fg);
+}
+
+/* ── 色调：墨黑（data-tone="dark" 为兼容写法） ─────────────────── */
+.film-theme[data-tone="ink"],
+.film-theme[data-tone="dark"],
+.film-card-frame[data-tone="ink"],
+.film-card-surface[data-tone="ink"] {
+  color-scheme: dark;
+  --film-bg:          #14161a;
+  --film-fg:          #ece7dc;
+  --film-muted:       #97907f;
+  --film-surface:     #1c1f24;
+  --film-soft:        #262a30;
+  --film-border:        #333840;
+  --film-border-strong: #4a505a;
+  --film-accent:      #ece7dc;
+  --film-on-accent:   #14161a;
+  --film-accent-2:    #c9a86a;
+  --film-focus:       #6fb3a4;
+  --film-lift-cast:  0 18px 36px -22px rgb(0 0 0 / 62%);
+  --film-lift-touch: 0 2px 6px -3px rgb(0 0 0 / 38%);
+}
+
+/* ── 纸叠 ───────────────────────────────────────────────────────
+   外层只管投影与圆角，不裁切（投影才不会被自己裁掉）；
+   内层负责可见的纸面与裁切。 */
+.film-card-frame {
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--film-radius);
+  box-shadow: var(--film-shadow);
+}
+
+.film-card-surface {
+  border-radius: inherit;
+  overflow: hidden;
+  background: var(--film-surface);
+  color: var(--film-fg);
+  border: var(--film-hairline) solid var(--film-border);
+}
+
+/* ── 按钮 ─────────────────────────────────────────────────────── */
+.film-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .55em;
+  margin: 0;
+  border: var(--film-hairline) solid transparent;
+  border-radius: var(--film-radius-pill);
+  padding: .68em 1.25em;
+  font: inherit;
+  font-weight: 560;
+  line-height: 1.25;
+  background: var(--film-accent);
+  color: var(--film-on-accent);
+  cursor: pointer;
+}
+
+.film-button[data-variant="secondary"] {
+  background: var(--film-soft);
+  color: var(--film-fg);
+  border-color: var(--film-border);
+}
+
+.film-button[data-variant="outline"] {
+  background: transparent;
+  color: var(--film-fg);
+  border-color: var(--film-border-strong);
+}
+
+.film-button[data-variant="ghost"] {
+  background: transparent;
+  color: var(--film-muted);
+  border-color: transparent;
+}
+
+.film-button:focus-visible {
+  outline: 3px solid var(--film-focus);
+  outline-offset: 2px;
+}
+
+/* ── 徽标 ─────────────────────────────────────────────────────── */
+.film-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .4em;
+  border: var(--film-hairline) solid var(--film-border);
+  border-radius: var(--film-radius-pill);
+  padding: .3em .72em;
+  background: var(--film-soft);
+  color: var(--film-muted);
+  font-size: .72em;
+  font-weight: 520;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+
+.film-badge[data-variant="accent"] {
+  background: transparent;
+  color: var(--film-accent-2);
+  border-color: var(--film-accent-2);
+}
+
+/* ── 分隔与强调线 ─────────────────────────────────────────────── */
+.film-divider {
+  border: 0;
+  border-top: var(--film-hairline) solid var(--film-border);
+  margin: 0;
+}
+
+.film-rule {
+  width: 3.2em;
+  height: 3px;
+  border: 0;
+  background: var(--film-accent-2);
+  border-radius: 2px;
+}
+
+/* 影片时钟统一接管运动；此处只兜住系统级的减少动效偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .film-theme *,
+  .film-theme *::before,
+  .film-theme *::after {
+    animation-duration: .001ms !important;
+    transition-duration: .001ms !important;
+  }
+}

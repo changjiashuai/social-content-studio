@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>公众号次条封面 1:1（500×500）</title>
+<!--
+  公众号次条及以上封面模板 · 1:1 · 500×500
+  尺寸来源：scripts/social_specs.json → channels["wechat/mp-article"].cover.secondary
+  （部分旧入口仍用 200×200；本模板同比例缩放即可）
+
+  与头条封面的差别：
+    · 次条封面**不会**被标题叠压，所以可以把标题排满。
+    · 但它在列表里尺寸很小 → 字要大、图形要大，细节一律不要。
+    · 建议只放：一个短标题（≤12 字）+ 一个数字或图标。
+-->
+<style>
+  :root {
+    --paper:    #16181D;   /* 次条封面用深底更抓眼，与头条的暖白形成层级差 */
+    --ink:      #FFFFFF;
+    --ink-soft: rgba(255,255,255,.62);
+    --primary:  #6E9BFF;
+    --font-cn: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    --font-en: "Inter", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #E8E8E6; }
+
+  #cover {
+    position: relative;
+    width: 500px; height: 500px;
+    background: var(--paper);
+    overflow: hidden;
+    font-family: var(--font-cn);
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 44px;
+  }
+
+  .visual {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(78% 62% at 82% 14%, rgba(110,155,255,.34) 0%, transparent 62%),
+      radial-gradient(90% 70% at 10% 100%, rgba(110,155,255,.14) 0%, transparent 58%);
+  }
+  .grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.07) 1px, transparent 1px);
+    background-size: 62px 62px;
+    mask-image: linear-gradient(180deg, #000 0%, #000 46%, transparent 88%);
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 46%, transparent 88%);
+  }
+
+  .eyebrow {
+    position: relative; z-index: 5;
+    font-family: var(--font-en);
+    font-size: 13px; font-weight: 700; letter-spacing: 2.2px;
+    text-transform: uppercase; color: var(--primary);
+  }
+
+  .metric {
+    position: relative; z-index: 5;
+    font-family: var(--font-en);
+    font-size: 104px; font-weight: 800; line-height: .92;
+    letter-spacing: -3px; color: var(--ink);
+  }
+  .metric span { font-size: 40px; letter-spacing: 0; margin-left: 6px; color: var(--ink-soft); }
+
+  .title {
+    position: relative; z-index: 5;
+    font-size: 34px; line-height: 1.26; font-weight: 700;
+    color: var(--ink); max-width: 380px;
+  }
+  .title em { font-style: normal; color: var(--primary); }
+
+  .foot {
+    position: relative; z-index: 5;
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: var(--font-en);
+    font-size: 13px; font-weight: 600; letter-spacing: 1.4px;
+    color: var(--ink-soft);
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════ 截图这个元素 → cover-11.jpg ══════ -->
+<div id="cover">
+  <div class="visual"></div>
+  <div class="grid"></div>
+
+  <div class="eyebrow">Performance</div>
+
+  <div class="metric">48<span>MB</span></div>
+
+  <div class="title">打包体积<em>砍掉 78%</em></div>
+
+  <div class="foot"><span>{{品牌名}}</span><span>v0.11</span></div>
+</div>
+<!-- ═════════════════════════════════════════ -->
+
+</body>
+</html>
