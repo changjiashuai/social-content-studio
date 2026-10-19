@@ -89,6 +89,40 @@ def first_frame_metrics(video, count=5):
     return {'inkRatio':frames,'threshold':0.004,'note':'share of pixels differing from the frame median by more than 32 luma levels at 480x270'}
 
 
+EVIDENCE_LEVELS = ['repo', 'material', 'web']
+
+
+def evidence_level(plan):
+    """产品片证据级别：repo（有源码）/ material（只有截图录屏）/ web（只有网址）。
+
+    未声明时按有仓库处理，保持 v1.2.x 及之前的行为不变。
+    """
+    level = plan.get('evidenceLevel') or 'repo'
+    return level if level in EVIDENCE_LEVELS else 'repo'
+
+
+def research_checks(plan, errors, warnings, project_dir):
+    """B/C 级（没有源码）必须先写 RESEARCH.md，否则等于在没读懂产品时开拍。"""
+    if plan.get('demo') is not False:
+        return
+    level = evidence_level(plan)
+    path = Path(project_dir or '.') / 'RESEARCH.md'
+    if level in ('web', 'material'):
+        if not path.is_file():
+            errors.append(
+                'Production film at evidence level "' + level + '" needs RESEARCH.md '
+                '(references/platforms/generic/product-video/research-brief.md): '
+                'product, public facts with URLs, what the level excludes, one-line conclusion')
+            return
+        text = path.read_text(encoding='utf-8', errors='replace')
+        if level not in text:
+            warnings.append('RESEARCH.md should state the evidence level (' + level + ') and what it excludes')
+        if not re.search(r'https?://', text):
+            warnings.append('RESEARCH.md lists no source URL; public facts need traceable links')
+    elif not path.is_file():
+        warnings.append('No RESEARCH.md; repository-level audit may be enough, but state where facts came from')
+
+
 def direction_checks(plan, errors, warnings, project_dir):
     """Production films start from a written direction: concept choice, derived devices, frame system, shot list."""
     if plan.get('demo') is not False:return
@@ -125,7 +159,11 @@ def creative_checks(plan, errors, warnings, project_dir, mix_report, final_video
         if not isinstance(shot,dict):continue
         label=str(shot.get('id','shot'))
         if production and shot.get('type') in ['detail','workspace','macro'] and not nonempty(shot.get('component')):
-            errors.append(label+' needs a component source for its feature visual')
+            if evidence_level(plan) == 'repo':
+                errors.append(label+' needs a component source for its feature visual')
+            else:
+                warnings.append(label+' has no component source at evidence level "'+evidence_level(plan)+
+                                '"; a feature visual must not be an invented interface (web-first.md §3)')
         en=shot.get('headlineEn','')
         if not exception and shot.get('type') in ['title','detail','workspace','macro','end']:
             if not isinstance(en,str) or not re.search('[A-Za-z]',en) or en.strip().upper() in ['UPDATE','PRODUCT UPDATE','NEW','FEATURE']:
@@ -209,6 +247,8 @@ def check(plan, video=None, project_dir=None, mix_report=None, plan_path=None):
         errors.append('audioRequired must explicitly be true or false')
     if plan.get('demo', True):
         warnings.append('Technical demo; not a completed promotional film')
+    if plan.get('evidenceLevel') not in (None, *EVIDENCE_LEVELS):
+        errors.append('evidenceLevel must be one of ' + '/'.join(EVIDENCE_LEVELS))
     shots = plan.get('shots')
     if not isinstance(shots, list) or not shots:
         errors.append('shots must be a nonempty array')
@@ -266,6 +306,7 @@ def check(plan, video=None, project_dir=None, mix_report=None, plan_path=None):
         warnings.append('All shots use one layout type; review visual rhythm')
     creative_checks(plan, errors, warnings, project_dir, mix_report, bool(video), plan_path)
     direction_checks(plan, errors, warnings, project_dir)
+    research_checks(plan, errors, warnings, project_dir)
     if video:
         try:
             proc=subprocess.run(['ffprobe','-v','error','-show_streams','-show_format','-of','json',str(video)],capture_output=True,text=True,check=True)

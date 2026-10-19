@@ -902,5 +902,182 @@ class TestCheckPlan(Base):
         self.assertEqual(rc, 0, out)
 
 
+# ───────────────────────────────────── 内部溯源（evidence/FACTS.md）
+
+class TestFactsProvenance(Base):
+    """FACTS 是内控底账：示意不报错，宣称事实却无出处才阻断。"""
+
+    FORM = "xiaohongshu/image-text"
+
+    def make_note(self, body="这是一篇笔记的正文。"):
+        for i in range(6):
+            write_png(os.path.join(self.export, self.FORM, f"{i + 1:02d}.png"), 1080, 1440)
+        write_json(os.path.join(self.export, self.FORM, "meta.json"),
+                   {"title": "效率工具", "body": body,
+                    "topics": ["#a", "#b", "#c", "#d", "#e"]})
+
+    def write_facts(self, rows):
+        path = os.path.join(self.tmp, "evidence", "FACTS.md")
+        write_text(path,
+                   "| 主张 | 上屏内容 | 来源 | 引用 / 测量方法 | 状态 |\n"
+                   "|---|---|---|---|---|\n"
+                   + "\n".join("| " + " | ".join(r) + " |" for r in rows) + "\n")
+
+    def test_no_facts_with_hard_claim_is_error(self):
+        self.make_note("官方数据显示注册率提升 128%。")
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 1, out)
+        self.assertIn("缺少 evidence/FACTS.md", out)
+
+    def test_no_facts_without_claim_is_only_info_or_ok(self):
+        self.make_note("讲讲我们怎么做产品。")
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 0, out)
+
+    def test_valid_facts_passes(self):
+        self.make_note("注册率提升 128%。")
+        self.write_facts([
+            ["注册率提升", "注册率提升 128%", "https://e.com/r", "原文", "已核实"],
+        ])
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("结构完整", out)
+
+    def test_illustrative_row_with_factual_wording_is_error(self):
+        """标成「示意」却用「官方数据显示」——正是我们要拦的。"""
+        self.make_note("官方数据显示注册率提升 128%。")
+        self.write_facts([
+            ["注册率", "官方数据显示注册率提升 128%", "口述", "无", "示意"],
+        ])
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 1, out)
+        self.assertIn("标为「示意」", out)
+
+    def test_illustrative_row_alone_is_not_error(self):
+        """示意数据本身不惩罚。"""
+        self.make_note("平均每天省 40 分钟。")
+        self.write_facts([
+            ["节省时间", "平均每天省 40 分钟", "用户访谈 n=6", "自报", "示意"],
+        ])
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 0, out)
+
+    def test_missing_row_is_warning_not_error(self):
+        self.make_note("注册率提升 128%，还省了 40 分钟。")
+        self.write_facts([
+            ["注册率提升", "注册率提升 128%", "https://e.com/r", "原文", "已核实"],
+        ])
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("找不到出处", out)
+
+    def test_missing_source_is_warning(self):
+        self.make_note("注册率提升 128%。")
+        self.write_facts([["注册率提升", "注册率提升 128%", "", "原文", "已核实"]])
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("没写来源", out)
+
+    def test_bad_status_is_warning(self):
+        self.make_note("注册率提升 128%。")
+        self.write_facts([["注册率提升", "注册率提升 128%", "u", "原文", "大概吧"]])
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("不在", out)
+
+    def test_missing_header_is_error(self):
+        self.make_note("注册率提升 128%。")
+        write_text(os.path.join(self.tmp, "evidence", "FACTS.md"), "just some notes\n")
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 1, out)
+        self.assertIn("表头", out)
+
+    def test_version_numbers_do_not_require_source(self):
+        self.make_note("v1.2.3 上线了。")
+        self.write_facts([["上线", "v1.2.3 上线了", "u", "原文", "已核实"]])
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 0, out)
+        self.assertNotIn("找不到出处", out)
+
+
+# ───────────────────────────────────── styleDerivation 契约
+
+class TestStyleDerivation(Base):
+    def run_plan(self, plan):
+        path = os.path.join(self.tmp, "plan.json")
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump(plan, fh, ensure_ascii=False)
+        proc = subprocess.run([PY, SCRIPT, "--check-plan", path],
+                              capture_output=True, text=True)
+        return proc.returncode, proc.stdout + proc.stderr
+
+    def base_plan(self, sd=None):
+        plan = {"selection": {"generic": ["product-video"]},
+                "factSource": "generic/product-video",
+                "order": ["generic/product-video"],
+                "audience": "executive"}
+        if sd is not None:
+            plan["styleDerivation"] = sd
+        return plan
+
+    def good_sd(self):
+        return {"logic": "evidence",
+                "languages": ["data-story", "modular-grid"],
+                "compositionModel": "negative-space-small-subject",
+                "personality": {"precise": 2, "calm": -1, "premium": 2,
+                                "technical": 1, "new": 1},
+                "invariants": ["a", "b", "c", "d", "e"],
+                "prohibitions": ["x", "y", "z"],
+                "benchmarks": [{"title": "ref", "learn": "cutting"}]}
+
+    def test_complete_derivation_passes(self):
+        rc, out = self.run_plan(self.base_plan(self.good_sd()))
+        self.assertEqual(rc, 0, out)
+
+    def test_missing_derivation_warns(self):
+        rc, out = self.run_plan(self.base_plan())
+        self.assertEqual(rc, 0, out)
+        self.assertIn("缺少 styleDerivation", out)
+
+    def test_missing_composition_model_is_error(self):
+        sd = self.good_sd(); sd.pop("compositionModel")
+        rc, out = self.run_plan(self.base_plan(sd))
+        self.assertEqual(rc, 1, out)
+        self.assertIn("compositionModel", out)
+
+    def test_slider_out_of_range_is_error(self):
+        sd = self.good_sd(); sd["personality"]["precise"] = 5
+        rc, out = self.run_plan(self.base_plan(sd))
+        self.assertEqual(rc, 1, out)
+        self.assertIn("-2…+2", out)
+
+    def test_too_many_languages_warns(self):
+        sd = self.good_sd(); sd["languages"] = ["a", "b", "c"]
+        rc, out = self.run_plan(self.base_plan(sd))
+        self.assertEqual(rc, 0, out)
+        self.assertIn("一主一辅", out)
+
+    def test_too_few_invariants_warns(self):
+        sd = self.good_sd(); sd["invariants"] = ["only one"]
+        rc, out = self.run_plan(self.base_plan(sd))
+        self.assertEqual(rc, 0, out)
+        self.assertIn("不变量应至少 5 条", out)
+
+    def test_too_few_prohibitions_warns(self):
+        sd = self.good_sd(); sd["prohibitions"] = ["x"]
+        rc, out = self.run_plan(self.base_plan(sd))
+        self.assertEqual(rc, 0, out)
+        self.assertIn("禁令应至少 3 条", out)
+
+    def test_derivation_not_required_for_platform_forms(self):
+        """平台线不走产品片体系，不要求 styleDerivation。"""
+        rc, out = self.run_plan({"selection": {"wechat": ["mp-article"]},
+                                 "factSource": "wechat/mp-article",
+                                 "order": ["wechat/mp-article"],
+                                 "audience": "technical"})
+        self.assertEqual(rc, 0, out)
+        self.assertNotIn("styleDerivation", out)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

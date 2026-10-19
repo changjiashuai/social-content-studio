@@ -159,6 +159,37 @@ python3 <skill-dir>/scripts/check_social_delivery.py --check-plan <content-dir>/
 
 退出码 `0` 通过 / `1` 有 error（或 `--strict` 下有 warning）/ `2` 用法问题。**这不是可选项**——与「产出物自检」同一条纪律：能用脚本判的就别靠自觉。
 
+### 7.2 风格推导字段（仅产品片）
+
+选了 `generic/product-video` 时，`plan.json` 还要写 `styleDerivation`。它不是备注，是把「风格从内容推出来」这件事变成可验收的产物（推导方法见 [风格推导](../platforms/generic/product-video/style-derivation.md)）：
+
+```json
+"styleDerivation": {
+  "logic": "evidence",
+  "languages": ["data-story", "modular-grid"],
+  "compositionModel": "negative-space-small-subject",
+  "personality": {"precise": 2, "calm": -1, "premium": 2, "technical": 1, "new": 1},
+  "invariants": ["底色近黑偏冷", "强调色只有一个", "数字只出现一次", "网格 8% 对比", "每屏一个结论"],
+  "prohibitions": ["不用弹跳缓动", "不出现多色渐变", "不用无出处的大数字"],
+  "benchmarks": [{"title": "<参照作品>", "learn": "<学什么>", "avoid": "<不拿什么>"}]
+}
+```
+
+| 字段 | 必填性 | 约束 |
+|---|---|---|
+| `logic` | 必填 | 8 种信息形状之一（claim / workflow / mechanism / evidence / list / transformation / story / showcase） |
+| `languages` | 必填 | 一主一辅，**最多两条** |
+| `compositionModel` | 必填 | 单帧主构成，一个视觉核心 |
+| `personality` | 建议 | 五轴各 −2…+2，超出即 error |
+| `invariants` | 建议 | 至少 5 条 |
+| `evidenceLevel` | 建议 | `repo` / `material` / `web`；B/C 级另需 `RESEARCH.md` |
+| `prohibitions` | 建议 | 至少 3 条 |
+| `benchmarks` | 建议 | §0 的标杆，至少一个 |
+
+`--check-plan` 会逐项校验。**这是契约不是流程**：先推导、再写进 `plan.json`、再由脚本核对；顺序反过来（先编字段）没有意义。
+
+`evidenceLevel` 单独说明一句：它记录「你手上到底有什么」。`web` / `material` 时，`check_delivery.py` 要求工程里有 `RESEARCH.md`（[调研摘要](../platforms/generic/product-video/research-brief.md)），并把「功能镜头必须有原组件」降级为警告——**降级不等于放开伪造**，只是承认这种级别做不了交互演示。
+
 ---
 
 ## 8. 目录布局（多选时）

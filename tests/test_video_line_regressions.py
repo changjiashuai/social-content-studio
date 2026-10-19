@@ -224,4 +224,68 @@ class Landmarks(unittest.TestCase):
             self.assertAlmostEqual(r['peak'],0.5,delta=0.01)
             self.assertAlmostEqual(r['peakDbfs'],-0.9,delta=0.3)
 
+class EvidenceLevel(unittest.TestCase):
+    """只有网址时（B/C 级）先写 RESEARCH.md，且不要求原组件——但不能伪造界面。"""
+
+    def make_plan(self, level=None):
+        plan = {'duration': 10, 'fps': 30, 'width': 1920, 'height': 1080,
+                'style': 'default', 'repo': None, 'demo': False, 'audioRequired': True,
+                'typography': {'mode': 'bilingual', 'zhFont': 'PingFang SC',
+                               'enFont': 'Georgia', 'zhStyle': 'sans-serif'},
+                'shots': [
+                    {'id': 'intro', 'start': 0, 'end': 4, 'type': 'title',
+                     'headlineEn': 'See it', 'headline': '看这个', 'description': '一句话说清',
+                     'descriptionAt': 0, 'claim': False, 'source': [],
+                     'actions': [{'id': 'a1', 'at': 0, 'action': 'x', 'soundRequired': True}]},
+                    {'id': 'feat', 'start': 4, 'end': 10, 'type': 'detail',
+                     'headlineEn': 'How it works', 'headline': '它怎么工作',
+                     'description': '讲清机理', 'descriptionAt': 0, 'claim': True,
+                     'source': ['https://example.com/docs'],
+                     'plainExplanation': '文档描述了实现方式',
+                     'actions': [{'id': 'a2', 'at': 0, 'action': 'y', 'soundRequired': True}]}]}
+        if level:
+            plan['evidenceLevel'] = level
+        return plan
+
+    def test_web_level_without_research_is_error(self):
+        delivery = module('check_delivery')
+        errs = delivery.check(self.make_plan('web'), project_dir=tempfile.mkdtemp())['errors']
+        self.assertTrue(any('RESEARCH.md' in e for e in errs), errs)
+
+    def test_web_level_with_research_passes_that_check(self):
+        delivery = module('check_delivery')
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / 'RESEARCH.md').write_text(
+                '# 调研\n- 证据级别：web\n- https://example.com\n', encoding='utf-8')
+            errs = delivery.check(self.make_plan('web'), project_dir=d)['errors']
+        self.assertFalse(any('RESEARCH.md' in e for e in errs), errs)
+
+    def test_web_level_relaxes_component_requirement(self):
+        """没有源码时不强求 component，但必须给 warning 提醒别伪造界面。"""
+        delivery = module('check_delivery')
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / 'RESEARCH.md').write_text('证据级别 web https://e.com', encoding='utf-8')
+            res = delivery.check(self.make_plan('web'), project_dir=d)
+        self.assertFalse(any('component source' in e for e in res['errors']), res['errors'])
+        self.assertTrue(any('must not be an invented interface' in w for w in res['warnings']),
+                        res['warnings'])
+
+    def test_repo_level_still_requires_component(self):
+        """A 级行为不变：缺 component 仍然报错。"""
+        delivery = module('check_delivery')
+        errs = delivery.check(self.make_plan(), project_dir=tempfile.mkdtemp())['errors']
+        self.assertTrue(any('component source' in e for e in errs), errs)
+
+    def test_invalid_evidence_level_is_error(self):
+        delivery = module('check_delivery')
+        errs = delivery.check(self.make_plan('screenshot'), project_dir=tempfile.mkdtemp())['errors']
+        self.assertTrue(any('evidenceLevel' in e for e in errs), errs)
+
+    def test_research_without_url_warns(self):
+        delivery = module('check_delivery')
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / 'RESEARCH.md').write_text('# 调研\n证据级别 web\n', encoding='utf-8')
+            warns = delivery.check(self.make_plan('web'), project_dir=d)['warnings']
+        self.assertTrue(any('no source URL' in w for w in warns), warns)
+
 if __name__=='__main__':unittest.main()

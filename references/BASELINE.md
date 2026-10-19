@@ -1,6 +1,6 @@
 # 基线 BASELINE
 
-本文件是 `social-content-studio` **v1.1.0 的基线快照**：把"已经跑通的能力"在平台化结构中固定下来，
+本文件是 `social-content-studio` **v1.3.0 的基线快照**：把"已经跑通的能力"在平台化结构中固定下来，
 明确哪些是共用底座、哪些是平台专属、规格版本是什么、怎么校验。
 **后续每新增一个平台，都在此基线上叠加；基线本身只增不改。**
 
@@ -11,17 +11,17 @@
 ## 1. 基线的三条约束
 
 1. **可比对。** 基线里的每一项能力都必须能被一个具体文件 + 一条校验命令指认，不许"口头声称支持"。
-2. **不漂移。** 产品片体系有**两个明确的事实源**：**流程总纲**在 `SKILL.md` 的「通用平台 · 产品片」章节（7 步 + 硬约束 + 工程入口），**细则**在 `references/platforms/generic/product-video/` 的 13 个分册；总纲不复制分册正文，分册不改写总纲结论，分册之间也不互相复制。规格以 `scripts/social_specs.json` 单一事实源保存，模板与自检都从它读。§4 的基线指纹可用于逐文件核对。
+2. **不漂移。** 产品片体系有**两个明确的事实源**：**流程总纲**在 `SKILL.md` 的「通用平台 · 产品片」章节（7 步 + 硬约束 + 工程入口），**细则**在 `references/platforms/generic/product-video/` 的 18 个分册；总纲不复制分册正文，分册不改写总纲结论，分册之间也不互相复制。规格以 `scripts/social_specs.json` 单一事实源保存，模板与自检都从它读。§4 的基线指纹可用于逐文件核对。
 3. **不缩减。** 新增平台只能**叠加**，不得删改已有平台包与 `core/` 的既有语义。产品宣传片 / 版本更新片必须始终可被选中（路由第 3 项 `通用`）。
 
 ---
 
-## 2. 基线组成（v1.1.0，本版冻结）
+## 2. 基线组成（v1.3.0，本版冻结）
 
 | 层 | 位置 | 内容 | 说明 |
 |---|---|---|---|
 | 产品片·总纲 | `SKILL.md` →「通用平台 · 产品片」 | 术语、7 步流程、硬约束、工程入口 | **流程的唯一事实源**；分册不改写其结论 |
-| 产品片·细则 | `references/platforms/generic/product-video/` | 13 个分册（方向 / 文案节奏 / 手法词汇 / 组件接入 / 起步工程 / 仓库审计 / 依赖安装 / 配乐 / 混音验收 / 审片 / 封面 / 案例复盘 / 本机实测管线） | **细则的唯一事实源**；总纲不复制其正文 |
+| 产品片·细则 | `references/platforms/generic/product-video/` | 18 个分册（方向 / **网址优先** / **调研摘要** / 风格推导 / 节奏单 / 文案节奏 / 手法词汇 / 组件接入 / 起步工程 / 仓库审计 / 依赖安装 / 配乐 / 混音验收 / 审片 / 封面 / 案例复盘 / 本机实测管线；另有内部溯源 `provenance.md`） | **细则的唯一事实源**；总纲不复制其正文 |
 | 产品片·工程 | `scripts/video-line/` | 初始化、环境预检、音效落点、混音、音效生成、结构与媒体自检 | 6 个脚本，纯标准库；混音与落点需 ffmpeg |
 | 产品片·资产 | `assets/platforms/generic/` | `starter/`（起步工程：运行时 / 构建 / 预览 / 渲染 / 封面 / 静帧 / 适配器 / fixture）、`fallback/`（默认样式「纸墨」）、`fx-lab/`（6 个手法样例）、`audio/`（2 个配乐示例 + 11 个音效 + manifest） | **全部本包原创** |
 | 共用底座 | `references/core/` | 路由协议、生产管线、跨平台一致性、平台接入契约 | 平台无关，被所有平台包共用 |
@@ -44,6 +44,10 @@
 | 产品宣传片 / 版本更新片（横版 16:9 或自由画幅） | 路由 → `通用` 平台 → `generic/product-video` |
 | 产品取材、`DIRECTION.md`、镜头表、专属手法推导（流程 1–7 步） | `SKILL.md` 总纲；被所有平台包共用 |
 | 分镜与文案、视觉手法词汇、组件接入、审片、封面 | `product-video/` 对应分册 |
+| **风格推导**（8 形状 → 10 语言 → 5 滑块 → 5 不变量 + 3 禁令） | `product-video/style-derivation.md` |
+| **节奏单**（路线 / 能量曲线 / 密度 / 死时间） | `product-video/rhythm-brief.md` |
+| **网址优先调查**（A/B/C 三级证据源，只有官网也能开工） | `product-video/web-first.md` |
+| **调研摘要**（`RESEARCH.md`，B/C 级必写） | `product-video/research-brief.md` |
 | 工程初始化 / 环境预检 / 无头渲染 / 编码 / 混音 / 结构自检 | `scripts/video-line/` 六个脚本 |
 | 起步工程、默认样式、手法样例、配乐示例、11 个原创音效 | `assets/platforms/generic/` |
 | 已实跑验证的本机管线与 28 条环境坑 | `product-video/pipeline-notes.md` |
@@ -68,6 +72,9 @@
 | 投放预设（`--preset`） | `scripts/video-line/init_project.py` | 小红书竖版与视频号横版节奏要求相反，此前只写在文档里 |
 | CI 回归（`.github/workflows/regression.yml`） | 仓库根 | 基线纪律「改完必跑」此前靠人自觉 |
 | ffprobe 失败不再静默 | `probe_video` + 报告末尾 | 探测失败此前看起来像「文件没问题」 |
+| **内部溯源**（`evidence/FACTS.md`，六形式共用） | `check_social_delivery.py` 的 `check_facts` | 上屏数字此前无底账；现在「宣称事实却无出处」会阻断，示意数据本身不惩罚 |
+| `styleDerivation` 契约 | `--check-plan` | 风格推导从「对话里的一句话」变成 `plan.json` 里可验收的字段 |
+| **证据级别**（`plan.evidenceLevel`）+ `RESEARCH.md` 校验 | `check_delivery.py` | 只有网址时不再假装能演示交互；B/C 级缺调研摘要直接阻断 |
 
 ### 3.3 基线校验（改完必跑）
 
@@ -99,7 +106,7 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 
 ---
 
-## 4. 基线指纹（v1.1.0）
+## 4. 基线指纹（v1.3.0）
 
 用于核对基线是否被改动。完整 SHA-256 可用 `shasum -a 256 <file>` 复算（下表取前 16 位）。
 二进制资产（音效 WAV、预览 PNG）、`LICENSE` 与 `BASELINE.md` 自身不入表（自身无法自洽）。
@@ -109,8 +116,8 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 | 文件 | SHA-256 前 16 位 |
 |---|---|
 | `.gitignore` | `6e0cb83e04db8cd4` |
-| `README.md` | `12c744f7161df184` |
-| `SKILL.md` | `ee7c319a319da4a8` |
+| `README.md` | `29f38153a0ae6cc1` |
+| `SKILL.md` | `24c8e6d2b5e86930` |
 | `agents/openai.yaml` | `ecbfa04409b23ee2` |
 | `.github/workflows/regression.yml` | `99cf617225cb1ab7` |
 
@@ -125,9 +132,9 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 | 文件 | SHA-256 前 16 位 |
 |---|---|
 | `references/core/cross-platform.md` | `013dc99c5877e865` |
-| `references/core/pipeline.md` | `99cd7e21188bf539` |
+| `references/core/pipeline.md` | `b1d2fb26292c42c2` |
 | `references/core/platform-schema.md` | `780e6cccdf6226ea` |
-| `references/core/routing.md` | `887cc0ac52262b76` |
+| `references/core/routing.md` | `5be809f62f9a978c` |
 
 ### 4.4 平台包 · 微信
 
@@ -156,23 +163,28 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 | `references/platforms/generic/product-video/audio-and-qa.md` | `a55ef57ad10f5e40` |
 | `references/platforms/generic/product-video/audio-sourcing.md` | `935d9f7861af2871` |
 | `references/platforms/generic/product-video/case-study.md` | `2e2268183a8793cb` |
-| `references/platforms/generic/product-video/component-pipeline.md` | `d7ebea1a79698ee8` |
+| `references/platforms/generic/product-video/component-pipeline.md` | `d9c9feb24b7ffb0c` |
 | `references/platforms/generic/product-video/cover.md` | `7cf9f6a5ee3a5342` |
-| `references/platforms/generic/product-video/direction.md` | `cb5e549ae93cb2b1` |
+| `references/platforms/generic/product-video/direction.md` | `951754ab270e283c` |
 | `references/platforms/generic/product-video/onboarding.md` | `1ac708ea4ccf47cf` |
 | `references/platforms/generic/product-video/pipeline-notes.md` | `4cf3cb13d65072ab` |
-| `references/platforms/generic/product-video/repo-and-style.md` | `1d1d2c210eda1bf1` |
-| `references/platforms/generic/product-video/review.md` | `277eaedb111cd882` |
+| `references/platforms/generic/product-video/repo-and-style.md` | `d11f65f4e92508ed` |
+| `references/platforms/generic/product-video/review.md` | `2a8017343cc84f72` |
 | `references/platforms/generic/product-video/starter.md` | `d303b4b564e56356` |
 | `references/platforms/generic/product-video/story-and-copy.md` | `b276335346bd8cb3` |
 | `references/platforms/generic/product-video/visual-vocabulary.md` | `09d7fea454bd4d71` |
-| `references/platforms/generic/specs.md` | `5134aca864169fe0` |
+| `references/platforms/generic/specs.md` | `50c9313a13f85d7f` |
+| `references/platforms/generic/product-video/style-derivation.md` | `ce5310aedf7cfa7b` |
+| `references/platforms/generic/product-video/web-first.md` | `1768c3eb235366af` |
+| `references/platforms/generic/product-video/research-brief.md` | `638da98f56b7d705` |
+| `references/platforms/generic/product-video/rhythm-brief.md` | `5fd54dc157ae9236` |
+| `references/platforms/generic/product-video/provenance.md` | `e855a371146472ad` |
 
 ### 4.7 平台线脚本
 
 | 文件 | SHA-256 前 16 位 |
 |---|---|
-| `scripts/check_social_delivery.py` | `c634dd3fb8579df7` |
+| `scripts/check_social_delivery.py` | `83440c6be64e06d7` |
 | `scripts/render_social_assets.mjs` | `93c51823b86a0ddd` |
 | `scripts/social_specs.json` | `1e296bf069b0c48e` |
 
@@ -180,7 +192,7 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 
 | 文件 | SHA-256 前 16 位 |
 |---|---|
-| `scripts/video-line/check_delivery.py` | `3411ce67335f2ef6` |
+| `scripts/video-line/check_delivery.py` | `1f128dc39be6bb19` |
 | `scripts/video-line/check_environment.py` | `51ed8a2fc10d3ed1` |
 | `scripts/video-line/init_project.py` | `6e6658d88c1d2994` |
 | `scripts/video-line/make_sfx.py` | `7c4cb127d93096ea` |
@@ -192,8 +204,8 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 | 文件 | SHA-256 前 16 位 |
 |---|---|
 | `tests/integration.mjs` | `f717acf428b04b08` |
-| `tests/test_check_social_delivery.py` | `91a41d639187de49` |
-| `tests/test_video_line_regressions.py` | `0c1c35bafd402b6b` |
+| `tests/test_check_social_delivery.py` | `9c0e28a7c7f8a58f` |
+| `tests/test_video_line_regressions.py` | `be5a8d5df64bad2d` |
 
 ### 4.10 平台模板 · 微信
 
@@ -318,6 +330,8 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 
 | 版本 | 说明 |
 |---|---|
+| **v1.3.0** | **补上「只有网址」这一条最常见路径。** ①新增 `product-video/web-first.md`：A/B/C 三级证据源（仓库 / 素材 / 网址），每级能做什么、不能做什么；公开来源清单（官网、文档、changelog、定价、公开仓库、数据集）与内容挖掘三层；三条硬线——只用公开可引用内容、不用泄露与付费墙内容、**不假造界面**。②新增 `product-video/research-brief.md`：`RESEARCH.md` 契约（四问 + 证据级别与边界 + 与 FACTS/推导的关系），B/C 级必写。③`direction.md` §2 增加「证据级别 → 允许的信息形状」约束（C 级不能做 Workflow）。④`repo-and-style.md` 与 `component-pipeline.md` 开头加分流，避免只有网址时硬套仓库流程。⑤`check_delivery.py` 新增 `evidenceLevel` 解析与 `research_checks`：B/C 级缺 `RESEARCH.md` 报 error；功能镜头的原组件要求在非 repo 级别降级为 warning（**降级不等于放开伪造**）。⑥分册 15 → 18。回归测试 116 → 122 项。 |
+| **v1.2.0** | **风格从「挑」改为「推导」，并补上节奏与内部溯源。** ①新增 `product-video/style-derivation.md`：8 种信息形状 → 10 种运动语言 → 5 个性格滑块 → 单帧主构成 → 5 条不变量 + 3 条禁令；给主题或数据即可自行推导风格，不再需要用户先选风格。②新增 `product-video/rhythm-brief.md`：路线（连续/蒙太奇/混合）、能量曲线（3 秒钩子、37% 爆点、停顿后砸落）、每小节事件密度、死时间判据。③`direction.md` 新增 §0 定标杆（学什么/绝不拿什么）；§3 由「各轴挑一个」改为「三种表达逻辑推导」并把轴表降级为手法库；§5 反重复改为六项（结构/开场/签名镜头/镜头路线/配乐形状/结尾）至少四项不同的硬判据。④`review.md` 新增独立审片人、必问「哪一段开始走神」、反馈四件套（时间码/镜头 ID/元素/源码位置）。⑤新增内部溯源契约 `provenance.md`（六形式共用一份 `evidence/FACTS.md`）；`check_social_delivery.py` 按「示意不惩罚、宣称事实无出处才阻断」分级校验。**FACTS 为内控底账，不随片交付、不主动展示。**⑥`plan.json` 新增 `styleDerivation` 字段，`--check-plan` 逐项校验。⑦分册 13 → 15。回归测试 98 → 116 项。 |
 | **v1.1.0** | **把「文档纪律」变成「机器守卫」**，能力面不变、不新增平台。①`check_social_delivery.py --check-plan` 校验 `plan.json` 契约：形式是否登记、`factSource` 是否在 `selection` 内、`order` 与 `selection` 同集合、事实源排第一、静态形式不得排在动态形式之后、`audience` 必填。②`uncertainty` 从注释变成可执行约定：规格项统一为 `max` + `safeMax` + `uncertainty`，新增 `uncertain_of` / `uncertain_max` / `judge_count` / `report_uncertainty`，落在稳妥与官方之间的值报 WARN 并附原文；微信图片数量、小红书图片数量、小红书话题数量、小红书视频时长四项已归一。③`init_project.py --preset`（`generic` / `xhs-vertical` / `channels-horizontal` / `channels-vertical`）一次定好画幅与首帧/钩子要求，默认值与 v1.0.3 完全一致。④`probe_video` 收窄异常捕获，ffprobe 失败原因在报告末尾单独列出，不再静默成「合格」。⑤新增 `.github/workflows/regression.yml`：离线回归（Python 3.9 / 3.11 / 3.12）+ 模板探测 + 可选集成回归。⑥SKILL.md 平台包要点改为指向 `specs.md` 单一事实源，砍掉重复参数（约 -1.5K 字符）；README 补齐 `social content` / `product promo` 两个触发词。回归测试 73 → 98 项。 |
 | **v1.0.3** | **补充第三方名称的使用说明**：`references/THIRD-PARTY.md` 新增 §2.3，逐类列出包内出现的第三方名称（案例对象 / 外部运行时依赖 / 素材来源标注 / 本机他 skill 名）及其性质，说明它们属**叙述性使用**、不是随包分发的第三方组件，并写明案例复盘保留产品实名的理由。**案例对象名一处未动**，仅新增说明。同版修正 `product-video/audio-and-qa.md` 内置音效目录的链接为包内相对路径（原写法为包根相对路径，在按文件位置解析的渲染器下会断链）。 |
 | **v1.0.2** | **起步工程改为完全原创**：`assets/platforms/generic/starter/` 的 29 个文件（运行时 `engine.js` / `film-store.js` / `client.jsx` / `film.jsx`、`kit/` 四件、`shots/` 两件、`presentations.jsx`、`product-context.jsx`、`fixtures/api.js`、`film.css`、六个工程脚本、`integration.config.mjs`、`package.json`、`adapters/` 四件）按同一对外契约重新实现，实现与表述全部新写。该目录由第三方代码改为本包原创，**包内自此没有任何第三方组件**；`NOTICE.md` 版权行改为 changjiashuai。对外契约（文件名、导出名、DOM 契约、CLI 参数、`window.*` API）全部保持不变，既有影片工程无需改动。 |

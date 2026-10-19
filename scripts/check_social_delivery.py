@@ -1232,13 +1232,308 @@ def check_plan(plan_path: str, specs: dict) -> Report:
     else:
         rep.add(ch, "audience", OK, f"读者类型 {aud}")
 
+    # 风格推导：产品片要求可验收（见 style-derivation.md）
+    if "generic/product-video" in selected:
+        _check_style_derivation(plan.get("styleDerivation"), rep, ch)
+
     return rep
+
+
+def _check_style_derivation(sd, rep: Report, ch: str):
+    """校验 plan.json.styleDerivation：推导必须是可验收的产物，不是一句「已定风格」。"""
+    item = "styleDerivation"
+    if sd is None:
+        rep.add(ch, item, WARN,
+                "缺少 styleDerivation —— 风格应从内容推导（见 product-video/style-derivation.md）")
+        return
+    if not isinstance(sd, dict):
+        rep.add(ch, item, ERROR, "styleDerivation 必须是对象")
+        return
+
+    logic = sd.get("logic")
+    if not logic:
+        rep.add(ch, item, ERROR, "缺 logic（信息形状：claim/workflow/mechanism/evidence/list/transformation/story/showcase）")
+    elif not isinstance(logic, str):
+        rep.add(ch, item, ERROR, f"logic 必须是字符串，收到 {type(logic).__name__}")
+    else:
+        rep.add(ch, item, OK, f"信息形状 {logic}")
+
+    langs = sd.get("languages")
+    if not isinstance(langs, list) or not langs:
+        rep.add(ch, item, ERROR, "缺 languages（一主一辅，最多两条）")
+    elif len(langs) > 2:
+        rep.add(ch, item, WARN, f"languages 有 {len(langs)} 条 —— 一主一辅即可，多了会散")
+    else:
+        rep.add(ch, item, OK, f"运动语言 {', '.join(str(x) for x in langs)}")
+
+    comp = sd.get("compositionModel")
+    if not comp:
+        rep.add(ch, item, ERROR, "缺 compositionModel（单帧主构成，一张只能有一个视觉核心）")
+    else:
+        rep.add(ch, item, OK, f"主构成 {comp}")
+
+    sliders = sd.get("personality")
+    if not isinstance(sliders, dict) or not sliders:
+        rep.add(ch, item, WARN, "缺 personality（五个滑块打分），参数将无处可依")
+    else:
+        bad = {k: v for k, v in sliders.items()
+               if not isinstance(v, (int, float)) or isinstance(v, bool) or not -2 <= v <= 2}
+        if bad:
+            rep.add(ch, item, ERROR, f"性格滑块必须在 -2…+2：{bad}")
+        else:
+            rep.add(ch, item, OK, f"性格滑块 {len(sliders)} 轴")
+
+    inv = sd.get("invariants")
+    if not isinstance(inv, list) or len(inv) < 5:
+        rep.add(ch, item, WARN,
+                f"不变量应至少 5 条（当前 {len(inv) if isinstance(inv, list) else 0} 条）—— 少了无法保证风格稳定")
+    else:
+        rep.add(ch, item, OK, f"不变量 {len(inv)} 条")
+
+    prohib = sd.get("prohibitions")
+    if not isinstance(prohib, list) or len(prohib) < 3:
+        rep.add(ch, item, WARN,
+                f"禁令应至少 3 条（当前 {len(prohib) if isinstance(prohib, list) else 0} 条）—— 跑偏通常是做多了")
+    else:
+        rep.add(ch, item, OK, f"禁令 {len(prohib)} 条")
+
+    bench = sd.get("benchmarks")
+    if not isinstance(bench, list) or not bench:
+        rep.add(ch, item, WARN, "缺 benchmarks（§0 定标杆），没有参照物")
+    else:
+        rep.add(ch, item, OK, f"标杆 {len(bench)} 个")
 
 
 def write_json_report(path: str, payload: dict):
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(payload, fh, ensure_ascii=False, indent=2)
     print(f"报告已写入 {path}")
+
+
+def collect_screen_texts(specs: dict, forms: list[str], export_root: str) -> list[tuple[str, str]]:
+    """收集各形式的「用户可见文案」，供内部溯源反查数字。
+
+    只收集会真正出现在成片/推文里的文本（标题、正文、描述、逐图文案），
+    不含路径、字段名、状态之类的结构信息。
+    """
+    out: list[tuple[str, str]] = []
+    for fid in forms:
+        try:
+            spec = form_spec(specs, fid)
+        except KeyError:
+            continue
+        d = os.path.join(export_root, spec.get("exportPath", ""))
+        if not os.path.isdir(d):
+            continue
+        meta = read_meta(d)
+        if isinstance(meta, dict) and "__error__" not in meta:
+            for key in ("title", "body", "description", "summary", "digest",
+                        "shortTitle", "headline"):
+                v = meta.get(key)
+                if isinstance(v, str) and v.strip():
+                    out.append((fid, v))
+            for key in ("cardTexts", "paragraphs", "highlights", "bullets"):
+                v = meta.get(key)
+                if isinstance(v, list):
+                    for item in v:
+                        if isinstance(item, str) and item.strip():
+                            out.append((fid, item))
+        for name in ("copy.md", "article.html"):
+            p = os.path.join(d, name)
+            if os.path.isfile(p):
+                try:
+                    with open(p, encoding="utf-8", errors="replace") as fh:
+                        out.append((fid, fh.read()))
+                except OSError:
+                    pass
+        # 视频线的上屏文案通常在 plan.json 的 shot 文案里
+        if fid.endswith("video") or fid == "generic/product-video":
+            p = os.path.join(os.path.abspath(export_root), "..", "plan.json")
+            if os.path.isfile(p):
+                try:
+                    with open(p, encoding="utf-8") as fh:
+                        plan = json.load(fh)
+                    for shot in plan.get("shots", []) if isinstance(plan, dict) else []:
+                        if not isinstance(shot, dict):
+                            continue
+                        for key in ("headline", "headlineEn", "description"):
+                            v = shot.get(key)
+                            if isinstance(v, str) and v.strip():
+                                out.append((fid, v))
+                except (OSError, ValueError):
+                    pass
+    return out
+
+
+# ------------------------------------------------- 内部溯源（evidence/FACTS.md）
+#
+# FACTS 是内控底账，不随片交付、不在对话里展开。这里的检查结论同样只进
+# 内部报告：交付说明里默认不提，只在用户问起或证据链断裂时说一句结论。
+#
+# 分级原则：不惩罚「用了示意数据」，只惩罚「宣称了事实却拿不出出处」。
+
+FACTS_HEADER = ("主张", "上屏内容", "来源")
+FACTS_STATUSES = ("已核实", "示意", "待核实")
+# 「未核实却宣称是事实」的措辞标记：出现这些词，该行就不能是「示意」。
+FACT_CLAIM_WORDS = re.compile(
+    r"(数据显示|实测|官方(数据|公布)?|据(统计|报告)|研究表明|权威|精确到|"
+    r"\d+(\.\d+)?%|百分之)",
+)
+# 明确宣称「这是真事」的词，缺 FACTS 行时才算阻断项。
+HARD_CLAIM_WORDS = re.compile(r"(数据显示|实测|官方(数据|公布)|据(统计|报告)|研究表明)")
+NUMBER_LIKE = re.compile(r"\d[\d,.]*\s*(%|倍|万|亿|千|秒|分钟|小时|天|个|项|种|次|人|家)?|"
+                         r"\d+(\.\d+)?")
+
+
+def find_facts_path(project: str, export_root: str) -> str | None:
+    """兼容两种布局：内容目录 `evidence/FACTS.md`，或产品片工程目录下同名文件。"""
+    candidates = [
+        os.path.join(os.path.abspath(project), "evidence", "FACTS.md"),
+        os.path.join(export_root, "evidence", "FACTS.md"),
+        os.path.join(os.path.abspath(project), "FACTS.md"),
+    ]
+    for c in candidates:
+        if os.path.isfile(c):
+            return c
+    return None
+
+
+def _md_cells(line: str) -> list[str]:
+    """拆一行 markdown 表格，去空白与首尾竖线。"""
+    body = line.strip()
+    if body.startswith("|"):
+        body = body[1:]
+    if body.endswith("|"):
+        body = body[:-1]
+    return [c.strip() for c in body.split("|")]
+
+
+def read_facts(path: str) -> tuple[list[dict], list[str]]:
+    """读 FACTS.md 的表格，返回 (行, 结构问题)。
+
+    只认带表头的 markdown 表格；表头必须含「主张 / 上屏内容 / 来源」三列。
+    """
+    problems: list[str] = []
+    rows: list[dict] = []
+    try:
+        with open(path, encoding="utf-8") as fh:
+            lines = fh.read().splitlines()
+    except OSError as exc:
+        return [], [f"无法读取 {path}：{exc}"]
+
+    header: list[str] | None = None
+    for i, line in enumerate(lines):
+        cells = _md_cells(line)
+        if header is None:
+            if all(h in cells for h in FACTS_HEADER):
+                header = cells
+            continue
+        if not line.strip().startswith("|"):
+            if rows:
+                break
+            continue
+        if all(re.fullmatch(r":?-{2,}:?", c) for c in cells if c):
+            continue
+        if len(cells) < len(FACTS_HEADER):
+            problems.append(f"第 {i + 1} 行列数不足（{len(cells)} 列）")
+            continue
+        row = {header[j]: cells[j] for j in range(min(len(header), len(cells)))}
+        if not any(v for v in row.values()):
+            continue
+        rows.append(row)
+
+    if header is None:
+        problems.append("找不到表头（需含「主张」「上屏内容」「来源」三列）")
+    return rows, problems
+
+
+def _facts_blob(rows: list[dict]) -> tuple[str, str]:
+    """把 FACTS 的可比对文本拼起来：上屏内容 + 主张，用于反查。"""
+    screens = []
+    claims = []
+    for r in rows:
+        text = (r.get("上屏内容") or "").strip()
+        claim = (r.get("主张") or "").strip()
+        if text:
+            screens.append(text)
+        if claim:
+            claims.append(claim)
+    return "\n".join(screens), "\n".join(claims)
+
+
+def check_facts(project: str, export_root: str, rep: Report,
+                screen_texts: list[tuple[str, str]] | None = None):
+    """内部溯源检查（全部形式共用）。
+
+    screen_texts：[(形式 ID, 上屏文本)] —— 各形式在检查时收集的用户可见文案。
+    缺 FACTS 时，只有出现「明确宣称事实」的措辞才上升到 ERROR；否则只 WARN。
+    """
+    ch = "facts"
+    path = find_facts_path(project, export_root)
+    if path is None:
+        claimed = [(fid, t) for fid, t in (screen_texts or []) if HARD_CLAIM_WORDS.search(t)]
+        if claimed:
+            rep.add(ch, "FACTS", ERROR,
+                    "内容里有明确的实测 / 官方口径措辞，但缺少 evidence/FACTS.md —— "
+                    "无法证明这些主张有出处", len(claimed), "≥1 行出处")
+        elif screen_texts:
+            rep.add(ch, "FACTS", WARN,
+                    "没有 evidence/FACTS.md，上屏数字未做溯源核查（内部项，不影响结构校验）")
+        return
+
+    rows, problems = read_facts(path)
+    for p in problems:
+        rep.add(ch, "FACTS", ERROR, f"evidence/FACTS.md 结构有问题：{p}")
+    if problems:
+        return
+    if not rows:
+        rep.add(ch, "FACTS", WARN, "evidence/FACTS.md 里没有任何数据行")
+        return
+
+    # 每行自身的完整性
+    for idx, r in enumerate(rows, 1):
+        claim = (r.get("主张") or "").strip()
+        screen = (r.get("上屏内容") or "").strip()
+        source = (r.get("来源") or "").strip()
+        status = (r.get("状态") or "").strip()
+        if not claim:
+            rep.add(ch, "FACTS", ERROR, f"第 {idx} 行缺「主张」")
+        if not screen:
+            rep.add(ch, "FACTS", ERROR, f"第 {idx} 行缺「上屏内容」")
+        if not source:
+            rep.add(ch, "FACTS", WARN, f"第 {idx} 行（{claim or '未命名'}）没写来源")
+        if status and status not in FACTS_STATUSES:
+            rep.add(ch, "FACTS", WARN,
+                    f"第 {idx} 行状态 {status!r} 不在 {FACTS_STATUSES} 内")
+        # 标成「示意」的，不许再用「实测/官方」措辞
+        if status == "示意" and FACT_CLAIM_WORDS.search(screen):
+            rep.add(ch, "FACTS", ERROR,
+                    f"第 {idx} 行标为「示意」，但上屏内容用了事实性措辞（{screen[:24]}…）")
+
+    screens_blob, claims_blob = _facts_blob(rows)
+    rep.add(ch, "FACTS", OK, f"evidence/FACTS.md 共 {len(rows)} 行，结构完整")
+
+    # 上屏数字是否都能在底账里找到
+    unmatched: list[str] = []
+    for fid, text in (screen_texts or []):
+        for m in NUMBER_LIKE.finditer(text):
+            token = m.group(0).strip()
+            if not re.search(r"\d", token):
+                continue
+            # 纯序号、版本号（v1.2.3）、时长等结构性数字不要求出处
+            if re.fullmatch(r"v?\d+(\.\d+)+", token):
+                continue
+            if token in screens_blob or token in claims_blob:
+                continue
+            unmatched.append(f"{fid}:{token}")
+    if unmatched:
+        uniq = sorted(set(unmatched))
+        rep.add(ch, "FACTS", WARN,
+                "这些上屏数字在 FACTS 里找不到出处 —— " + "、".join(uniq[:8])
+                + ("…" if len(uniq) > 8 else "") + "（内部项：补一行，或换成能溯源的数字）",
+                len(uniq), 0)
+    elif screen_texts:
+        rep.add(ch, "FACTS", OK, "上屏数字都能在 FACTS 找到出处")
 
 
 # ------------------------------------------------------------------ 主流程
@@ -1397,6 +1692,10 @@ def main() -> int:
     rep = Report()
     for fid in forms:
         FORM_CHECKS[fid](specs, export_root, rep)
+
+    # 内部溯源：跨形式共用一份 evidence/FACTS.md（多平台时只有一份）
+    screen_texts = collect_screen_texts(specs, forms, export_root)
+    check_facts(args.project, export_root, rep, screen_texts)
 
     print(render_report(rep, specs))
     c = rep.counts()

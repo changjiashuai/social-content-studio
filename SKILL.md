@@ -1,14 +1,14 @@
 ---
 name: social-content-studio
-version: 1.1.0
+version: 1.3.0
 author: changjiashuai
 license: "AGPL-3.0（见 LICENSE 与 references/THIRD-PARTY.md）"
-description: "社交内容工坊：两级路由驱动的多平台多形式内容生产。先选平台（微信 / 小红书 / 通用），再选该平台的内容形式。微信支持图文（图片消息 / 小绿书）、公众号长文、视频号视频；小红书支持图文笔记、视频笔记；通用承载代码驱动的产品宣传片与版本更新片。产出前强制先问平台再问形式（均支持多选），再进对应流水线；多选时按「事实源 → 静态切片 → 动态切片」串行执行以保证口径一致。通用平台自带完整制作体系：13 个方法论分册 + 6 个工程脚本 + 起步工程 + 默认样式 + 手法样例 + 原创音效，全部原生内置，无外部 skill 依赖。触发词：微信图文、小绿书、公众号文章、公众号排版、视频号、小红书图文、小红书笔记、小红书视频、多平台分发、产品宣传片、版本更新片、changelog、social content、product promo。"
+description: "社交内容工坊：两级路由驱动的多平台多形式内容生产。先选平台（微信 / 小红书 / 通用），再选该平台的内容形式。微信支持图文（图片消息 / 小绿书）、公众号长文、视频号视频；小红书支持图文笔记、视频笔记；通用承载代码驱动的产品宣传片与版本更新片。产出前强制先问平台再问形式（均支持多选），再进对应流水线；多选时按「事实源 → 静态切片 → 动态切片」串行执行以保证口径一致。通用平台自带完整制作体系：18 个方法论分册 + 6 个工程脚本 + 起步工程 + 默认样式 + 手法样例 + 原创音效，全部原生内置，无外部 skill 依赖。触发词：微信图文、小绿书、公众号文章、公众号排版、视频号、小红书图文、小红书笔记、小红书视频、多平台分发、产品宣传片、版本更新片、changelog、social content、product promo。"
 ---
 
 # 社交内容工坊 social-content-studio
 
-**一个自带全部能力的独立 skill。** 通用平台（产品片）的完整制作体系——13 个方法论分册、6 个工程脚本、起步工程、默认样式、手法样例、配乐示例与原创音效——全部原生在本 skill 内；微信与小红书两个平台包在此之上按**两级路由**组织：**先选平台，再选该平台下的内容形式**。本 skill 不依赖任何外部 skill，可独立分发。
+**一个自带全部能力的独立 skill。** 通用平台（产品片）的完整制作体系——18 个方法论分册、6 个工程脚本、起步工程、默认样式、手法样例、配乐示例与原创音效——全部原生在本 skill 内；微信与小红书两个平台包在此之上按**两级路由**组织：**先选平台，再选该平台下的内容形式**。本 skill 不依赖任何外部 skill，可独立分发。
 
 - **为什么平台优先**：平台决定硬规格（画幅、字数、体积、封面比例、审核红线），形式决定叙事骨架。两者正交。平台优先之后，新增一个平台只是叠加一个平台包——不动共用底座、不动已有平台包、不动通用平台的产品片体系。
 - **基线在哪**：已跑通的能力固化在 [references/BASELINE.md](references/BASELINE.md)（能力清单 + 规格版本 + 三条校验命令）。**扩平台先看基线。**
@@ -76,8 +76,12 @@ social-content-studio/
 │       └── generic/
 │           ├── PLATFORM.md         # 平台入口 + 分册索引 + 工程与资产 + 红线
 │           ├── specs.md            # 兜底规格 + 两层自检覆盖范围
-│           └── product-video/      # ── 产品片 13 个分册（细则）──
-│               ├── direction.md            影片方向（先定方向再写代码）
+│           └── product-video/      # ── 产品片 18 个分册（细则）──
+│               ├── direction.md            影片方向（定标杆 → 推导 → 固化 → 镜头表）
+│               ├── web-first.md            网址优先（只有官网时怎么调查；三级证据源）
+│               ├── research-brief.md       调研摘要（RESEARCH.md 契约，B/C 级必写）
+│               ├── style-derivation.md     风格推导（信息形状 → 运动语言 → 滑块 → 不变量与禁令）
+│               ├── rhythm-brief.md         节奏单（路线 / 能量曲线 / 密度 / 死时间）
 │               ├── story-and-copy.md       分镜、文案与节奏
 │               ├── visual-vocabulary.md    视觉手法词汇
 │               ├── component-pipeline.md   真实组件到可渲染画面
@@ -86,9 +90,10 @@ social-content-studio/
 │               ├── onboarding.md           依赖安装（仅缺项时读）
 │               ├── audio-sourcing.md       配乐与音效来源、编曲与对位
 │               ├── audio-and-qa.md         声音与成片检查
-│               ├── review.md               审片
+│               ├── review.md               审片（含独立审片与反馈定位）
 │               ├── cover.md                封面 3:4 / 4:3 / 16:9
 │               ├── case-study.md           案例复盘
+│               ├── provenance.md           内部溯源（FACTS 底账，不随片交付）
 │               └── pipeline-notes.md       本机实测管线与环境坑 28 条
 ├── assets/
 │   └── platforms/
@@ -147,25 +152,25 @@ social-content-studio/
 ## 通用平台 · 产品片
 
 代码驱动的**产品宣传片**与**版本更新片**，对应形式 `generic/product-video`。
-**本章是总纲**（术语 + 7 步流程 + 硬约束 + 工程入口）；**细则是 `references/platforms/generic/product-video/` 下的 13 个分册**，每一步都链到对应分册。平台包入口见 [generic/PLATFORM.md](references/platforms/generic/PLATFORM.md)。
+**本章是总纲**（术语 + 7 步流程 + 硬约束 + 工程入口）；**细则是 `references/platforms/generic/product-video/` 下的 18 个分册**，每一步都链到对应分册。平台包入口见 [generic/PLATFORM.md](references/platforms/generic/PLATFORM.md)。
 
 用真实组件讲清楚一个软件产品或一次更新，让画面、文案和声音一起推进。本文术语：**默认样式**指 `assets/platforms/generic/fallback/`（「纸墨」，纸白 / 墨黑双色调）；**起步工程**指 `assets/platforms/generic/starter/`，初始产物称**技术样片**；**方向文件**指视频工程里的 `DIRECTION.md`；音效事件统一保存在 `audio.cues`。
 
 ### 流程
 
-1. **确认范围、平台与风格。** 已有工程沿用 brief 和用户决定，只处理本次修改。新片补齐：产品/仓库、发布渠道、时长与画幅、语言、是否允许链接，以及用户有没有参考视频。**范围与产品平台面必须由用户拍板**，仓库只能说明有哪些版本，说明不了用户想宣传什么：覆盖全量产品、最新一个版本周期，还是指定版本区间？覆盖哪些平台面（桌面端／CLI·TUI／移动端／服务端 API）？没指定时问一次，答案写入 `plan.json` 的 `scope`（如 `{"versions":"v0.10.12..v0.11.0","platforms":["cli-tui"]}`）并同步进 BRIEF。风格没定时问一次："沿用代码库自己的设计风格（推荐），还是默认的纸白／墨黑风格？"`repo` 用产品设计；`default` 用默认样式包装；`hybrid` 保留产品识别、调整外层排版。常见起点：横版、45–60 秒、中文。
+1. **确认范围、平台与风格。** 已有工程沿用 brief 和用户决定，只处理本次修改。新片补齐：产品/仓库、发布渠道、时长与画幅、语言、是否允许链接，以及用户有没有参考视频。**范围与产品平台面必须由用户拍板**，仓库只能说明有哪些版本，说明不了用户想宣传什么：覆盖全量产品、最新一个版本周期，还是指定版本区间？覆盖哪些平台面（桌面端／CLI·TUI／移动端／服务端 API）？没指定时问一次，答案写入 `plan.json` 的 `scope`（如 `{"versions":"v0.10.12..v0.11.0","platforms":["cli-tui"]}`）并同步进 BRIEF。风格没定时问一次："沿用代码库自己的设计风格（推荐），还是默认的纸白／墨黑风格？"`repo` 用产品设计；`default` 用默认样式包装；`hybrid` 保留产品识别、调整外层排版。**只有网址时**还要确认官网地址与「能不能用公开截图」，并说明由此片子会走主张/证据路线而非功能演示。常见起点：横版、45–60 秒、中文。
 2. **初始化并检查环境。** 按下方[工程入口](#工程入口)初始化独立视频目录，再运行环境检查；只对报告的缺项加载 [依赖安装](references/platforms/generic/product-video/onboarding.md)，装完复查。已有工程直接检查，不重新初始化。
-3. **调查产品，接通组件。** 按 [仓库与风格审计](references/platforms/generic/product-video/repo-and-style.md) 确定功能、发布状态和证据，记下设计语言、暗色主题和可做母题的产品元素。在浏览器里挂载真实业务组件：补 provider，接口用 fixture，交互用真实点击和输入，放大到视频尺度（[起步工程](references/platforms/generic/product-video/starter.md)、[组件接入](references/platforms/generic/product-video/component-pipeline.md)）。先接通一个功能镜头并出静帧。
-4. **定方向，写 `DIRECTION.md`。** 按 [影片方向](references/platforms/generic/product-video/direction.md)：拆解参考，提炼产品气质，沿不同的轴提出三个方向，选一个并写出理由；列出 3–5 个"因为产品有 X、所以用 Y"的专属手法，并避开本工作区上一支片子的手法；把画面规范写成具体数字；写到每一秒的镜头表（文案写法见 [分镜、文案与节奏](references/platforms/generic/product-video/story-and-copy.md)）。用户想先看方向时，给三个方向和 3–6 张关键静帧，等反馈；否则继续。
+3. **调查产品，接通组件。** **先判证据级别**：有源码走 [仓库与风格审计](references/platforms/generic/product-video/repo-and-style.md)；只有截图录屏或只有官网，走 [网址优先](references/platforms/generic/product-video/web-first.md)，并**先写 `RESEARCH.md`**（[调研摘要](references/platforms/generic/product-video/research-brief.md)，B/C 级必写，`check_delivery.py` 会校验）。级别写进 `plan.json.evidenceLevel`，它决定能做什么形状——**只有网址时不做功能演示镜头，也不画假界面**。按审计确定功能、发布状态和证据，记下设计语言、暗色主题和可做母题的产品元素。在浏览器里挂载真实业务组件：补 provider，接口用 fixture，交互用真实点击和输入，放大到视频尺度（[起步工程](references/platforms/generic/product-video/starter.md)、[组件接入](references/platforms/generic/product-video/component-pipeline.md)）。先接通一个功能镜头并出静帧。
+4. **定方向，写 `DIRECTION.md`。** 按 [影片方向](references/platforms/generic/product-video/direction.md)：先定标杆（学什么 / 绝不拿什么），拆解参考，提炼产品气质；按 [风格推导](references/platforms/generic/product-video/style-derivation.md) 从内容推出三个**表达逻辑不同**的方向，选一个并写出理由；列出 3–5 个"因为产品有 X、所以用 Y"的专属手法，并避开本工作区上一支片子的手法；把画面规范写成具体数字；写到每一秒的镜头表（文案写法见 [分镜、文案与节奏](references/platforms/generic/product-video/story-and-copy.md)）。用户想先看方向时，给三个方向和 3–6 张关键静帧，等反馈；否则继续。
 5. **逐镜头搭建。** 每个镜头 = 视图组件 + builder（GSAP 主时间轴、`onRender` 画布层、`onDrive` 真实交互），时间只从 `plan.json` 读。手法从 [视觉手法词汇](references/platforms/generic/product-video/visual-vocabulary.md) 里选能从产品推导的，`assets/platforms/generic/fx-lab/` 的样例改写后再用。每搭完一个镜头就出静帧，对照镜头表（[审片](references/platforms/generic/product-video/review.md)）。
 6. **配乐与音效。** 按 [配乐与音效](references/platforms/generic/product-video/audio-sourcing.md) 选音乐来源（用户提供 → 本机可用的生成模型 → 代码合成），编曲从镜头边界推出来，音色从产品气质推出来；音效先用录音素材，缺项再用内置 WAV。用 `sfx_landmarks.py` 实测落点和电平，按 [混音与验收](references/platforms/generic/product-video/audio-and-qa.md) 对位、让位、混音。
-7. **审片并交付。** 导出全片，看 2 fps 联系表、每个转场的 10 fps 条带和信息密集镜头的全尺寸帧，按 [审片](references/platforms/generic/product-video/review.md) 修改后重新导出。运行 `check_delivery.py`（`pacing` 只提示该去看哪一段）。交付 MP4、可复现工程和少量预览；说清哪些是自动检查、哪些实际看过/听过、哪些仍未验证。要发布时按 [封面](references/platforms/generic/product-video/cover.md) 做 3:4 / 4:3 / 16:9 封面，用户没提就用一句话问一下。历史问题查 [案例复盘](references/platforms/generic/product-video/case-study.md)。
+7. **审片并交付。** 导出全片，看 2 fps 联系表、每个转场的 10 fps 条带和信息密集镜头的全尺寸帧，按 [审片](references/platforms/generic/product-video/review.md) 修改后重新导出（有条件时让独立审片人看一次，并问「哪一段开始走神」）。运行 `check_delivery.py`（`pacing` 只提示该去看哪一段）。交付 MP4、可复现工程和少量预览；说清哪些是自动检查、哪些实际看过/听过、哪些仍未验证。要发布时按 [封面](references/platforms/generic/product-video/cover.md) 做 3:4 / 4:3 / 16:9 封面，用户没提就用一句话问一下。历史问题查 [案例复盘](references/platforms/generic/product-video/case-study.md)。
 
 ### 硬约束
 
-- **真实功能。** 正式片至少一项可追溯的主张；每项记录发布状态、来源和白话解释。演示数据可以固定，功能效果与数字要有证据。范围与平台以 `plan.scope` 为准，交付时声明没有覆盖的平台面，避免观众以为片子讲的是产品全貌。
+- **真实功能。** 正式片至少一项可追溯的主张；每项记录发布状态、来源和白话解释。演示数据可以固定，功能效果与数字要有证据。上屏的每个数字在 `evidence/FACTS.md` 有一行出处（见 [内部溯源](references/platforms/generic/product-video/provenance.md)）。**FACTS 是内控底账：不随片交付、不主动展示**；用户问起来源时如实回答，证据链断裂时用一句话说明结论。范围与平台以 `plan.scope` 为准，交付时声明没有覆盖的平台面，避免观众以为片子讲的是产品全貌。
 - **原组件，视频尺度。** 功能镜头接入实际业务组件、原样式及状态，界面正文在成片里 ≥ 22px（1080p）。抽象化只用于取景、布局和外层动画。平台确实无法接入时，记录阻碍和替代方式，遵从已有授权。
-- **先有方向，再写代码。** 正式片必须有 `DIRECTION.md`：选定的方向和理由、从产品推导的专属手法、画面规范、镜头表。
+- **先推导，再写代码。** 正式片必须有 `DIRECTION.md`：标杆、信息形状与运动语言、五轴性格、五条不变量与三条禁令（推导方法见 [风格推导](references/platforms/generic/product-video/style-derivation.md)）、专属手法、节奏单（[节奏单](references/platforms/generic/product-video/rhythm-brief.md)）、画面规范、镜头表。**风格是推导结果，不是从菜单里挑的。**
 - **不套模板。** 每个视觉手法都要能说出它对应产品的哪一点。案例和 fx-lab 是推导示范，不是风格包；同一工作区连续做片，不原样复用上一支的开场、章节和背景手法。片内也要避免所有元素同一种入场、同一种转场。
 - **清楚排版。** 宣传标题默认英文、中文各一个 span，分别指定字体，中文无衬线；中文说明交代对象、动作和结果。产品内部字体保持原设计；用户指定的语言/字体优先。
 - **首帧就是完整画面。** 没有单独上传封面时，X / Threads 等平台会直接抓第一帧当缩略图。所以片子的前 5–10 帧要放一个完整画面，通常是开场段落的完成态；之后再淡出，开场动画照常播放。第一帧不能是空白底色，也不能是等待入场的背景。`check_delivery.py` 会测前 5 帧。
@@ -204,7 +209,11 @@ HyperFrames 工程使用 `--engine hyperframes`。新工程附 10 秒技术样�
 
 | 分册 | 讲什么 |
 |---|---|
-| [影片方向](references/platforms/generic/product-video/direction.md) | 参考拆解、产品气质、三个方向与差异轴、专属手法推导、反重复、画面规范、镜头表 |
+| [影片方向](references/platforms/generic/product-video/direction.md) | 定标杆 → 提炼气质 → 推导三个方向 → 专属手法 → 反重复（六项四差异）→ 画面规范 → 镜头表 |
+| [网址优先](references/platforms/generic/product-video/web-first.md) | 只有官网/文档时怎么调查：A/B/C 三级证据源、公开可引用来源、三条硬线（不假造界面） |
+| [调研摘要](references/platforms/generic/product-video/research-brief.md) | `RESEARCH.md` 契约：四问、证据级别与边界、与 FACTS/推导的关系；B/C 级必写 |
+| [风格推导](references/platforms/generic/product-video/style-derivation.md) | 给主题/数据后自行推出风格：8 种信息形状 → 10 种运动语言 → 5 个性格滑块 → 单帧主构成 → 5 条不变量 + 3 条禁令 |
+| [节奏单](references/platforms/generic/product-video/rhythm-brief.md) | 先画能量曲线再排镜头：连续/蒙太奇/混合、爆点位置、每小节事件密度、死时间判据、文字停留 |
 | [分镜、文案与节奏](references/platforms/generic/product-video/story-and-copy.md) | 从更新清单到故事、中文文案说人话、标题中英分工、文案试读、动作与停留 |
 | [视觉手法词汇](references/platforms/generic/product-video/visual-vocabulary.md) | 按作用分组的手法：表达什么、从哪里推导、怎么实现、何时不用 |
 | [起步工程](references/platforms/generic/product-video/starter.md) | 运行时结构（seek、GSAP 主时间轴、`onRender`、`onDrive`）、接入仓库、样式链、plan 字段 |
@@ -213,9 +222,10 @@ HyperFrames 工程使用 `--engine hyperframes`。新工程附 10 秒技术样�
 | [依赖安装](references/platforms/generic/product-video/onboarding.md) | 仅有缺项时读：按报告装，装完 `--force` 复查 |
 | [配乐与音效](references/platforms/generic/product-video/audio-sourcing.md) | 音乐来源优先级、先编曲再合成、音效先找录音素材、对位、来源留存 |
 | [混音与验收](references/platforms/generic/product-video/audio-and-qa.md) | 从"写了音效"到"真的听得见"、音乐让位、卡点、混音、自动与人工检查 |
-| [审片](references/platforms/generic/product-video/review.md) | 三个审片节点、联系表与转场条带、常见问题对照表、指标只是提示 |
+| [审片](references/platforms/generic/product-video/review.md) | 三个审片节点、独立审片与「哪段走神」、反馈定位四件套、联系表与转场条带、常见问题对照表 |
 | [封面](references/platforms/generic/product-video/cover.md) | 3:4 / 4:3 / 16:9 三种比例的布局思路、选图、文案与导出（起步工程的 `cover.mjs`） |
 | [案例复盘](references/platforms/generic/product-video/case-study.md) | 原案例复盘：有效做法、真正修过的问题、第二个/第三个项目的经验 |
+| [内部溯源](references/platforms/generic/product-video/provenance.md) | `evidence/FACTS.md` 底账：上屏数字的出处与状态。**内部核查用，不随片交付、不主动展示** |
 | [本机实测管线与环境坑](references/platforms/generic/product-video/pipeline-notes.md) | 已实跑验证的渲染/编码/音频管线 + 28 条环境坑（全平台共用） |
 
 **配套资产**：
