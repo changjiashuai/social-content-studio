@@ -2,11 +2,11 @@
 
 **一个自带全部能力的独立 skill。** 把一次内容生产按 **「先选平台，再选内容形式」** 的两级结构组织起来，覆盖微信、小红书与自有渠道，并按平台渐进扩展。
 
-- 版本：**1.4.0**
+- 版本：**1.5.0**
 - 作者：**changjiashuai**
 - 授权：**AGPL-3.0**（见 [LICENSE](LICENSE)；包内全部内容均为作者原创，无第三方组件，见 [references/THIRD-PARTY.md](references/THIRD-PARTY.md)）
 - 基线：**`references/BASELINE.md`**（能力清单 + 校验命令 + 基线指纹 + 扩展契约）
-- 依赖：**无外部 skill 依赖**。影片的 18 个方法论分册、6 个工程脚本、起步工程、默认样式、手法样例、配乐示例与原创音效全部原生内置，可独立分发。
+- 依赖：**无外部 skill 依赖**。影片的 19 个方法论分册、6 个工程脚本、起步工程、默认样式、手法样例、配乐示例与原创音效全部原生内置，可独立分发。
 
 ---
 
@@ -15,10 +15,11 @@
 | 能力 | 形式 ID | 位置 |
 |---|---|---|
 | **两级路由（先平台后形式，均可多选）** | — | `references/core/routing.md` |
-| **代码驱动的影片**（产品片 / 科普 / 数据 / 叙事，片型由内容定） | `generic/motion-film` | `SKILL.md` →「通用平台 · 影片」（总纲）+ `references/platforms/generic/motion-film/`（18 个分册） |
+| **代码驱动的影片**（产品片 / 科普 / 数据 / 叙事，片型由内容定） | `generic/motion-film` | `SKILL.md` →「通用平台 · 影片」（总纲）+ `references/platforms/generic/motion-film/`（19 个分册） |
 | **风格推导**（给主题/数据后自行推出风格与叙事） | `generic/motion-film` | `motion-film/style-derivation.md` + `rhythm-brief.md` |
 | **只有网址也能开工**（三级证据源，不假造界面） | `generic/motion-film` | `motion-film/web-first.md` + `research-brief.md` |
 | **内部溯源**（上屏数字底账，六形式共用） | 全部形式 | `evidence/FACTS.md` + `motion-film/provenance.md` |
+| **配音**（edge-tts 优先，按内容选音色，禁用系统机器音） | `generic/motion-film` | `motion-film/voiceover.md` + `video-line/make_voiceover.py` |
 | **微信图文（图片消息 / 小绿书）** | `wechat/image-text` | `references/platforms/wechat/image-text.md` |
 | **公众号长文** | `wechat/mp-article` | `references/platforms/wechat/mp-article.md` |
 | **视频号视频** | `wechat/channels` | `references/platforms/wechat/channels.md` |
@@ -200,7 +201,7 @@ social-content-studio/
 ## 4. 组织方式的三个原则
 
 1. **影片是原生能力，不是外挂。**
-   总纲（7 步流程 + 硬约束 + 工程入口）在 `SKILL.md`，**细则是 `references/platforms/generic/motion-film/` 下的 18 个分册**。两者分工明确：总纲不复制分册正文，分册不改写总纲结论，因此不存在"两份正文不一致"。
+   总纲（7 步流程 + 硬约束 + 工程入口）在 `SKILL.md`，**细则是 `references/platforms/generic/motion-film/` 下的 19 个分册**。两者分工明确：总纲不复制分册正文，分册不改写总纲结论，因此不存在"两份正文不一致"。
 
 2. **共用底座上提，平台专属下沉。**
    `references/core/` 放平台无关的东西（路由、管线、跨平台一致性、接入契约）；
@@ -272,6 +273,7 @@ python3 -m unittest discover -s $SKILL/tests
 
 | 版本 | 说明 |
 |---|---|
+| **v1.5.0** | **补上配音能力。** 新增 `voiceover.md` 与 `make_voiceover.py`：用户未指定时优先 **edge-tts**（免费、无需 key），按片子气质选音色并记录理由；edge-tts 不可用再找其他免费 TTS；**都没有则停下来问用户**。`say` / SAPI / eSpeak 等系统机器音**一律禁用**——没有配音优于机器音。环境预检增加 TTS 探测但不阻塞渲染。分册 18 → 19，回归测试 131 → 137 项。 |
 | **v1.4.0** | **影片形式通用化：片型由内容决定，不再一律做成产品片。** 形式改名为 `generic/motion-film`（目录同步），**旧 ID 不再兼容**；新增 `filmKind`（`product` / `evidence` / `explainer` / `story`），`check_delivery.py` 按片型分派必备项；**不声明时等于 `product`**，默认严格度不变；任何片型都不许假造界面。回归测试 122 → 131 项。 |
 | **v1.3.0** | **补上「只给网址」这条最常见路径。** 新增 `web-first.md`（A/B/C 三级证据源 + 公开来源清单 + 三条硬线）与 `research-brief.md`（`RESEARCH.md` 四问契约，B/C 级必写）；`direction.md` 加「证据级别 → 允许的信息形状」约束；`check_delivery.py` 新增 `evidenceLevel` 与 `research_checks`（缺调研摘要阻断，原组件要求在非仓库级别降级为警告但不放开伪造）。分册 15 → 18，回归测试 116 → 122 项。 |
 | **v1.2.0** | **风格从「挑」改为「推导」。** 新增 `style-derivation.md`（8 信息形状 → 10 运动语言 → 5 性格滑块 → 主构成 → 5 不变量 + 3 禁令）与 `rhythm-brief.md`（路线 / 能量曲线 / 密度 / 死时间）；`direction.md` 加定标杆、改为推导、反重复改六项四差异；`review.md` 加独立审片与「哪段走神」；新增内部溯源契约（FACTS 底账，六形式共用，**不随片交付**）；`plan.json` 加 `styleDerivation` 并校验。回归测试 98 → 116 项。README 新增「§2.1 使用示例」六个场景与改前改后对照。 |

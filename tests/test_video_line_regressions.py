@@ -377,4 +377,89 @@ class FilmKind(unittest.TestCase):
             errs = self.errors(self.make_plan('animation'), d)
         self.assertTrue(any('filmKind' in e for e in errs), errs)
 
+class Voiceover(unittest.TestCase):
+    """配音：edge-tts 优先；没有可用 TTS 时退出码 3，绝不自行降级到系统机器音。"""
+
+    def setUp(self):
+        self.vo = module('make_voiceover')
+
+    def test_forbidden_engines_are_named(self):
+        for name in ('say', 'espeak', 'festival', 'pico2wave'):
+            self.assertIn(name, self.vo.FORBIDDEN_ENGINES)
+
+    def test_doctor_exit_code_when_edge_tts_missing(self):
+        """edge-tts 不可用时，doctor 必须返回「需要用户决定」而不是继续。"""
+        orig = self.vo.have_edge_tts
+        self.vo.have_edge_tts = lambda: (False, 'not installed')
+        try:
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                rc = self.vo.doctor()
+        finally:
+            self.vo.have_edge_tts = orig
+        self.assertEqual(rc, 3)
+
+    def test_missing_edge_tts_does_not_silently_use_say(self):
+        """缺 edge-tts 时生成路径必须退出 3，而不是退到 say。"""
+        orig = self.vo.have_edge_tts
+        self.vo.have_edge_tts = lambda: (False, 'not installed')
+        try:
+            with tempfile.TemporaryDirectory() as d:
+                plan = Path(d, 'plan.json')
+                plan.write_text(json.dumps({'shots': [
+                    {'id': 's1', 'start': 0, 'end': 3, 'voiceoverText': '你好'}]}),
+                    encoding='utf-8')
+                saved = sys.argv
+                sys.argv = ['make_voiceover.py', str(plan)]
+                try:
+                    with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                        rc = self.vo.main()
+                finally:
+                    sys.argv = saved
+        finally:
+            self.vo.have_edge_tts = orig
+        self.assertEqual(rc, 3)
+
+    def test_collect_lines_prefers_voiceover_text(self):
+        plan = {'shots': [
+            {'id': 'a', 'start': 0, 'end': 2, 'voiceoverText': '直接给的稿子',
+             'headline': '标题', 'description': '说明'},
+            {'id': 'b', 'start': 2, 'end': 4, 'headline': '标题B', 'description': '说明B'},
+            {'id': 'c', 'start': 4, 'end': 6},
+        ]}
+        lines = self.vo.collect_lines(plan)
+        self.assertEqual(len(lines), 2)
+        self.assertEqual(lines[0]['text'], '直接给的稿子')
+        self.assertIn('标题B', lines[1]['text'])
+
+    def test_source_none_skips_generation(self):
+        """plan 声明无配音时不该去调 TTS。"""
+        with tempfile.TemporaryDirectory() as d:
+            plan = Path(d, 'plan.json')
+            plan.write_text(json.dumps({'voiceover': {'source': 'none'},
+                                        'shots': [{'id': 's', 'start': 0, 'end': 3,
+                                                   'voiceoverText': 'x'}]}), encoding='utf-8')
+            saved = sys.argv
+            sys.argv = ['make_voiceover.py', str(plan)]
+            try:
+                with contextlib.redirect_stdout(io.StringIO()):
+                    rc = self.vo.main()
+            finally:
+                sys.argv = saved
+        self.assertEqual(rc, 0)
+
+    def test_user_recording_skips_generation(self):
+        with tempfile.TemporaryDirectory() as d:
+            plan = Path(d, 'plan.json')
+            plan.write_text(json.dumps({'voiceover': {'source': 'user-recording'},
+                                        'shots': [{'id': 's', 'start': 0, 'end': 3,
+                                                   'voiceoverText': 'x'}]}), encoding='utf-8')
+            saved = sys.argv
+            sys.argv = ['make_voiceover.py', str(plan)]
+            try:
+                with contextlib.redirect_stdout(io.StringIO()):
+                    rc = self.vo.main()
+            finally:
+                sys.argv = saved
+        self.assertEqual(rc, 0)
+
 if __name__=='__main__':unittest.main()

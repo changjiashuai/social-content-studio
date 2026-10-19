@@ -1,14 +1,14 @@
 ---
 name: social-content-studio
-version: 1.4.0
+version: 1.5.0
 author: changjiashuai
 license: "AGPL-3.0（见 LICENSE 与 references/THIRD-PARTY.md）"
-description: "社交内容工坊：两级路由驱动的多平台多形式内容生产。先选平台（微信 / 小红书 / 通用），再选该平台的内容形式。微信支持图文（图片消息 / 小绿书）、公众号长文、视频号视频；小红书支持图文笔记、视频笔记；通用承载代码驱动的产品宣传片与版本更新片。产出前强制先问平台再问形式（均支持多选），再进对应流水线；多选时按「事实源 → 静态切片 → 动态切片」串行执行以保证口径一致。通用平台自带完整制作体系：18 个方法论分册 + 6 个工程脚本 + 起步工程 + 默认样式 + 手法样例 + 原创音效，全部原生内置，无外部 skill 依赖。触发词：微信图文、小绿书、公众号文章、公众号排版、视频号、小红书图文、小红书笔记、小红书视频、多平台分发、产品宣传片、版本更新片、changelog、social content、product promo。"
+description: "社交内容工坊：两级路由驱动的多平台多形式内容生产。先选平台（微信 / 小红书 / 通用），再选该平台的内容形式。微信支持图文（图片消息 / 小绿书）、公众号长文、视频号视频；小红书支持图文笔记、视频笔记；通用承载代码驱动的产品宣传片与版本更新片。产出前强制先问平台再问形式（均支持多选），再进对应流水线；多选时按「事实源 → 静态切片 → 动态切片」串行执行以保证口径一致。通用平台自带完整制作体系：19 个方法论分册 + 6 个工程脚本 + 起步工程 + 默认样式 + 手法样例 + 原创音效，全部原生内置，无外部 skill 依赖。触发词：微信图文、小绿书、公众号文章、公众号排版、视频号、小红书图文、小红书笔记、小红书视频、多平台分发、产品宣传片、版本更新片、changelog、social content、product promo。"
 ---
 
 # 社交内容工坊 social-content-studio
 
-**一个自带全部能力的独立 skill。** 通用平台（影片）的完整制作体系——18 个方法论分册、6 个工程脚本、起步工程、默认样式、手法样例、配乐示例与原创音效——全部原生在本 skill 内；微信与小红书两个平台包在此之上按**两级路由**组织：**先选平台，再选该平台下的内容形式**。本 skill 不依赖任何外部 skill，可独立分发。
+**一个自带全部能力的独立 skill。** 通用平台（影片）的完整制作体系——19 个方法论分册、6 个工程脚本、起步工程、默认样式、手法样例、配乐示例与原创音效——全部原生在本 skill 内；微信与小红书两个平台包在此之上按**两级路由**组织：**先选平台，再选该平台下的内容形式**。本 skill 不依赖任何外部 skill，可独立分发。
 
 - **为什么平台优先**：平台决定硬规格（画幅、字数、体积、封面比例、审核红线），形式决定叙事骨架。两者正交。平台优先之后，新增一个平台只是叠加一个平台包——不动共用底座、不动已有平台包、不动通用平台的影片体系。
 - **基线在哪**：已跑通的能力固化在 [references/BASELINE.md](references/BASELINE.md)（能力清单 + 规格版本 + 三条校验命令）。**扩平台先看基线。**
@@ -88,6 +88,7 @@ social-content-studio/
 │               ├── starter.md              起步工程运行时结构
 │               ├── repo-and-style.md       仓库与风格审计
 │               ├── onboarding.md           依赖安装（仅缺项时读）
+│               ├── voiceover.md            配音（edge-tts 优先、按气质选音色、禁用系统机器音）
 │               ├── audio-sourcing.md       配乐与音效来源、编曲与对位
 │               ├── audio-and-qa.md         声音与成片检查
 │               ├── review.md               审片（含独立审片与反馈定位）
@@ -121,6 +122,7 @@ social-content-studio/
 │       ├── sfx_landmarks.py        实测音效起音点/峰值时间/峰值电平
 │       ├── mix_audio.py            混音、音乐让位、独立音轨与证据报告
 │       ├── make_sfx.py             改变音色时重新生成内置音效
+│       ├── make_voiceover.py       生成配音与字幕（edge-tts；无可用 TTS 时退出码 3）
 │       └── check_delivery.py       ★ 影片结构与媒体自检（按片型分派）（见 generic/specs.md §3）
 └── tests/
     ├── test_check_social_delivery.py   平台线回归（纯标准库）
@@ -152,7 +154,7 @@ social-content-studio/
 ## 通用平台 · 影片
 
 代码驱动的**产品宣传片**与**版本更新片**，对应形式 `generic/motion-film`。
-**本章是总纲**（术语 + 7 步流程 + 硬约束 + 工程入口）；**细则是 `references/platforms/generic/motion-film/` 下的 18 个分册**，每一步都链到对应分册。平台包入口见 [generic/PLATFORM.md](references/platforms/generic/PLATFORM.md)。
+**本章是总纲**（术语 + 7 步流程 + 硬约束 + 工程入口）；**细则是 `references/platforms/generic/motion-film/` 下的 19 个分册**，每一步都链到对应分册。平台包入口见 [generic/PLATFORM.md](references/platforms/generic/PLATFORM.md)。
 
 用真实组件讲清楚一个软件产品或一次更新，让画面、文案和声音一起推进。本文术语：**默认样式**指 `assets/platforms/generic/fallback/`（「纸墨」，纸白 / 墨黑双色调）；**起步工程**指 `assets/platforms/generic/starter/`，初始产物称**技术样片**；**方向文件**指视频工程里的 `DIRECTION.md`；音效事件统一保存在 `audio.cues`。
 
@@ -163,7 +165,7 @@ social-content-studio/
 3. **调查产品，接通组件。** **先判证据级别**：有源码走 [仓库与风格审计](references/platforms/generic/motion-film/repo-and-style.md)；只有截图录屏或只有官网，走 [网址优先](references/platforms/generic/motion-film/web-first.md)，并**先写 `RESEARCH.md`**（[调研摘要](references/platforms/generic/motion-film/research-brief.md)，B/C 级必写，`check_delivery.py` 会校验）。级别写进 `plan.json.evidenceLevel`，它决定能做什么形状——**只有网址时不做功能演示镜头，也不画假界面**。按审计确定功能、发布状态和证据，记下设计语言、暗色主题和可做母题的产品元素。在浏览器里挂载真实业务组件：补 provider，接口用 fixture，交互用真实点击和输入，放大到视频尺度（[起步工程](references/platforms/generic/motion-film/starter.md)、[组件接入](references/platforms/generic/motion-film/component-pipeline.md)）。先接通一个功能镜头并出静帧。
 4. **定方向，写 `DIRECTION.md`。** 按 [影片方向](references/platforms/generic/motion-film/direction.md)：先定标杆（学什么 / 绝不拿什么），拆解参考，提炼产品气质；按 [风格推导](references/platforms/generic/motion-film/style-derivation.md) 从内容推出三个**表达逻辑不同**的方向，选一个并写出理由；列出 3–5 个"因为产品有 X、所以用 Y"的专属手法，并避开本工作区上一支片子的手法；把画面规范写成具体数字；写到每一秒的镜头表（文案写法见 [分镜、文案与节奏](references/platforms/generic/motion-film/story-and-copy.md)）。用户想先看方向时，给三个方向和 3–6 张关键静帧，等反馈；否则继续。
 5. **逐镜头搭建。** 每个镜头 = 视图组件 + builder（GSAP 主时间轴、`onRender` 画布层、`onDrive` 真实交互），时间只从 `plan.json` 读。手法从 [视觉手法词汇](references/platforms/generic/motion-film/visual-vocabulary.md) 里选能从产品推导的，`assets/platforms/generic/fx-lab/` 的样例改写后再用。每搭完一个镜头就出静帧，对照镜头表（[审片](references/platforms/generic/motion-film/review.md)）。
-6. **配乐与音效。** 按 [配乐与音效](references/platforms/generic/motion-film/audio-sourcing.md) 选音乐来源（用户提供 → 本机可用的生成模型 → 代码合成），编曲从镜头边界推出来，音色从产品气质推出来；音效先用录音素材，缺项再用内置 WAV。用 `sfx_landmarks.py` 实测落点和电平，按 [混音与验收](references/platforms/generic/motion-film/audio-and-qa.md) 对位、让位、混音。
+6. **配音、配乐与音效。** 需要口播时按 [配音](references/platforms/generic/motion-film/voiceover.md)：用户给了录音或音色就直接用；否则**优先 edge-tts**，按片子气质选音色并把理由写进 `plan.json.voiceover`；edge-tts 不可用再找其他免费 TTS；**都没有时停下来问用户，绝不用系统机器音**（`say` / SAPI / eSpeak 一律禁用）。生成后必须试听并核对转写（多音字、数字读法是高频错误）。再按 [配乐与音效](references/platforms/generic/motion-film/audio-sourcing.md) 选音乐来源（用户提供 → 本机可用的生成模型 → 代码合成），编曲从镜头边界推出来，音色从产品气质推出来；音效先用录音素材，缺项再用内置 WAV。用 `sfx_landmarks.py` 实测落点和电平，按 [混音与验收](references/platforms/generic/motion-film/audio-and-qa.md) 对位、让位、混音。
 7. **审片并交付。** 导出全片，看 2 fps 联系表、每个转场的 10 fps 条带和信息密集镜头的全尺寸帧，按 [审片](references/platforms/generic/motion-film/review.md) 修改后重新导出（有条件时让独立审片人看一次，并问「哪一段开始走神」）。运行 `check_delivery.py`（`pacing` 只提示该去看哪一段）。交付 MP4、可复现工程和少量预览；说清哪些是自动检查、哪些实际看过/听过、哪些仍未验证。要发布时按 [封面](references/platforms/generic/motion-film/cover.md) 做 3:4 / 4:3 / 16:9 封面，用户没提就用一句话问一下。历史问题查 [案例复盘](references/platforms/generic/motion-film/case-study.md)。
 
 ### 硬约束
@@ -220,6 +222,7 @@ HyperFrames 工程使用 `--engine hyperframes`。新工程附 10 秒技术样�
 | [组件接入](references/platforms/generic/motion-film/component-pipeline.md) | 真实业务组件到可渲染画面：找入口、补 provider、fixture、状态与动画、复用证据 |
 | [仓库与风格审计](references/platforms/generic/motion-film/repo-and-style.md) | 更新事实与证据、原组件及设计依赖审计、默认样式的范围 |
 | [依赖安装](references/platforms/generic/motion-film/onboarding.md) | 仅有缺项时读：按报告装，装完 `--force` 复查 |
+| [配音](references/platforms/generic/motion-film/voiceover.md) | edge-tts 优先、按气质选音色与参数、禁用系统机器音、无可用 TTS 时怎么问用户 |
 | [配乐与音效](references/platforms/generic/motion-film/audio-sourcing.md) | 音乐来源优先级、先编曲再合成、音效先找录音素材、对位、来源留存 |
 | [混音与验收](references/platforms/generic/motion-film/audio-and-qa.md) | 从"写了音效"到"真的听得见"、音乐让位、卡点、混音、自动与人工检查 |
 | [审片](references/platforms/generic/motion-film/review.md) | 三个审片节点、独立审片与「哪段走神」、反馈定位四件套、联系表与转场条带、常见问题对照表 |
@@ -331,6 +334,7 @@ python3 $SKILL/scripts/video-line/check_environment.py --project <video-dir> --e
 python3 $SKILL/scripts/video-line/sfx_landmarks.py <video-dir>/assets/sfx/*.wav
 python3 $SKILL/scripts/video-line/mix_audio.py    <video-dir>/plan.json
 python3 $SKILL/scripts/video-line/make_sfx.py     --output <new-sfx-dir>
+python3 $SKILL/scripts/video-line/make_voiceover.py <video-dir>/plan.json   # 配音：先 --doctor 体检
 python3 $SKILL/scripts/video-line/check_delivery.py <video-dir>/plan.json \
   --video <video-dir>/renders/final.mp4 --mix-report <video-dir>/evidence/audio-mix.json
 

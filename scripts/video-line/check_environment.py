@@ -79,7 +79,22 @@ console.log(JSON.stringify(result));'''
             for name in names:
                 if name not in modules or modules[name].get('missing'):missing.append('package:'+name)
         else:missing.append('node-package-resolution');warnings.append(result['output'][:800])
-    details={'schema':2,'engine':a.engine,'platform':platform.platform(),'versions':versions,'packages':modules,'manifests':package_files,'browserEnv':{k:os.environ.get(k) for k in ['PLAYWRIGHT_BROWSERS_PATH','HYPERFRAMES_CHROME_PATH']}}
+    # 配音是可选项：只报告可用性，绝不因为缺 TTS 阻塞渲染。
+    tts={'edge-tts':False,'forbidden':[]}
+    try:
+        probe=run([sys.executable,'-c','import edge_tts;print(getattr(edge_tts,"__version__","unknown"))'],timeout=20)
+        tts['edge-tts']=probe['ok'] and bool(probe['output'].strip())
+        if tts['edge-tts']:versions['edge-tts']={'path':sys.executable,'version':probe['output'].strip()}
+    except (OSError,json.JSONDecodeError,KeyError):
+        tts['edge-tts']=False
+    for name,label in [('say','macOS say（系统机器音）'),('espeak','eSpeak'),('festival','Festival'),('pico2wave','pico2wave')]:
+        if shutil.which(name):tts['forbidden'].append(label)
+    if not tts['edge-tts']:
+        warnings.append('Voiceover: edge-tts unavailable. Do not fall back to system voices (say/espeak); '
+                        'use another free TTS or ask the user (references/platforms/generic/motion-film/voiceover.md).')
+    if tts['forbidden']:
+        warnings.append('Voiceover: installed but forbidden system voices detected: '+', '.join(tts['forbidden']))
+    details={'schema':2,'engine':a.engine,'tts':tts,'platform':platform.platform(),'versions':versions,'packages':modules,'manifests':package_files,'browserEnv':{k:os.environ.get(k) for k in ['PLAYWRIGHT_BROWSERS_PATH','HYPERFRAMES_CHROME_PATH']}}
     fingerprint=hashlib.sha256(json.dumps(details,sort_keys=True).encode()).hexdigest()
     state=project/'evidence/environment.json';old={}
     try:old=json.loads(state.read_text())

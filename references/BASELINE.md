@@ -1,6 +1,6 @@
 # 基线 BASELINE
 
-本文件是 `social-content-studio` **v1.4.0 的基线快照**：把"已经跑通的能力"在平台化结构中固定下来，
+本文件是 `social-content-studio` **v1.5.0 的基线快照**：把"已经跑通的能力"在平台化结构中固定下来，
 明确哪些是共用底座、哪些是平台专属、规格版本是什么、怎么校验。
 **后续每新增一个平台，都在此基线上叠加；基线本身只增不改。**
 
@@ -11,18 +11,18 @@
 ## 1. 基线的三条约束
 
 1. **可比对。** 基线里的每一项能力都必须能被一个具体文件 + 一条校验命令指认，不许"口头声称支持"。
-2. **不漂移。** 影片体系有**两个明确的事实源**：**流程总纲**在 `SKILL.md` 的「通用平台 · 影片」章节（7 步 + 硬约束 + 工程入口），**细则**在 `references/platforms/generic/motion-film/` 的 18 个分册；总纲不复制分册正文，分册不改写总纲结论，分册之间也不互相复制。规格以 `scripts/social_specs.json` 单一事实源保存，模板与自检都从它读。§4 的基线指纹可用于逐文件核对。
+2. **不漂移。** 影片体系有**两个明确的事实源**：**流程总纲**在 `SKILL.md` 的「通用平台 · 影片」章节（7 步 + 硬约束 + 工程入口），**细则**在 `references/platforms/generic/motion-film/` 的 19 个分册；总纲不复制分册正文，分册不改写总纲结论，分册之间也不互相复制。规格以 `scripts/social_specs.json` 单一事实源保存，模板与自检都从它读。§4 的基线指纹可用于逐文件核对。
 3. **不缩减。** 新增平台只能**叠加**，不得删改已有平台包与 `core/` 的既有语义。产品宣传片 / 版本更新片必须始终可被选中（路由第 3 项 `通用`）。
 
 ---
 
-## 2. 基线组成（v1.4.0，本版冻结）
+## 2. 基线组成（v1.5.0，本版冻结）
 
 | 层 | 位置 | 内容 | 说明 |
 |---|---|---|---|
 | 影片·总纲 | `SKILL.md` →「通用平台 · 影片」 | 术语、7 步流程、硬约束、工程入口 | **流程的唯一事实源**；分册不改写其结论 |
-| 影片·细则 | `references/platforms/generic/motion-film/` | 18 个分册（方向 / **网址优先** / **调研摘要** / 风格推导 / 节奏单 / 文案节奏 / 手法词汇 / 组件接入 / 起步工程 / 仓库审计 / 依赖安装 / 配乐 / 混音验收 / 审片 / 封面 / 案例复盘 / 本机实测管线；另有内部溯源 `provenance.md`） | **细则的唯一事实源**；总纲不复制其正文 |
-| 影片·工程 | `scripts/video-line/` | 初始化、环境预检、音效落点、混音、音效生成、结构与媒体自检 | 6 个脚本，纯标准库；混音与落点需 ffmpeg |
+| 影片·细则 | `references/platforms/generic/motion-film/` | 19 个分册（方向 / **网址优先** / **调研摘要** / 风格推导 / 节奏单 / 文案节奏 / 手法词汇 / 组件接入 / 起步工程 / 仓库审计 / 依赖安装 / 配音 / 配乐 / 混音验收 / 审片 / 封面 / 案例复盘 / 本机实测管线；另有内部溯源 `provenance.md`） | **细则的唯一事实源**；总纲不复制其正文 |
+| 影片·工程 | `scripts/video-line/` | 初始化、环境预检、音效落点、混音、音效生成、结构与媒体自检 | 7 个脚本，纯标准库；混音与落点需 ffmpeg |
 | 影片·资产 | `assets/platforms/generic/` | `starter/`（起步工程：运行时 / 构建 / 预览 / 渲染 / 封面 / 静帧 / 适配器 / fixture）、`fallback/`（默认样式「纸墨」）、`fx-lab/`（6 个手法样例）、`audio/`（2 个配乐示例 + 11 个音效 + manifest） | **全部本包原创** |
 | 共用底座 | `references/core/` | 路由协议、生产管线、跨平台一致性、平台接入契约 | 平台无关，被所有平台包共用 |
 | 平台包·通用 | `references/platforms/generic/` | `PLATFORM.md`（入口 + 分册索引 + 工程与资产 + 红线）+ `specs.md`（兜底规格 + 两层自检覆盖范围） | 方法论正文在总纲与分册（见 `core/platform-schema.md` §2 的例外约定） |
@@ -46,6 +46,7 @@
 | 分镜与文案、视觉手法词汇、组件接入、审片、封面 | `motion-film/` 对应分册 |
 | **风格推导**（8 形状 → 10 语言 → 5 滑块 → 5 不变量 + 3 禁令） | `motion-film/style-derivation.md` |
 | **节奏单**（路线 / 能量曲线 / 密度 / 死时间） | `motion-film/rhythm-brief.md` |
+| **配音**（edge-tts 优先、按气质选音色、禁用系统机器音） | `motion-film/voiceover.md` + `scripts/video-line/make_voiceover.py` |
 | **网址优先调查**（A/B/C 三级证据源，只有官网也能开工） | `motion-film/web-first.md` |
 | **调研摘要**（`RESEARCH.md`，B/C 级必写） | `motion-film/research-brief.md` |
 | 工程初始化 / 环境预检 / 无头渲染 / 编码 / 混音 / 结构自检 | `scripts/video-line/` 六个脚本 |
@@ -106,7 +107,7 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 
 ---
 
-## 4. 基线指纹（v1.4.0）
+## 4. 基线指纹（v1.5.0）
 
 用于核对基线是否被改动。完整 SHA-256 可用 `shasum -a 256 <file>` 复算（下表取前 16 位）。
 二进制资产（音效 WAV、预览 PNG）、`LICENSE` 与 `BASELINE.md` 自身不入表（自身无法自洽）。
@@ -116,8 +117,8 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 | 文件 | SHA-256 前 16 位 |
 |---|---|
 | `.gitignore` | `6e0cb83e04db8cd4` |
-| `README.md` | `8b3b56fb98cce4e2` |
-| `SKILL.md` | `f1ddbd05cabd3e35` |
+| `README.md` | `c2b0a7cb1bdac0cc` |
+| `SKILL.md` | `0ed9b717b404e81b` |
 | `agents/openai.yaml` | `ecbfa04409b23ee2` |
 | `.github/workflows/regression.yml` | `99cf617225cb1ab7` |
 
@@ -167,12 +168,14 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 | `references/platforms/generic/motion-film/cover.md` | `7cf9f6a5ee3a5342` |
 | `references/platforms/generic/motion-film/direction.md` | `951754ab270e283c` |
 | `references/platforms/generic/motion-film/onboarding.md` | `1ac708ea4ccf47cf` |
-| `references/platforms/generic/motion-film/pipeline-notes.md` | `4cf3cb13d65072ab` |
+| `references/platforms/generic/motion-film/pipeline-notes.md` | `e5a555454ff6af81` |
 | `references/platforms/generic/motion-film/repo-and-style.md` | `d11f65f4e92508ed` |
 | `references/platforms/generic/motion-film/review.md` | `2a8017343cc84f72` |
 | `references/platforms/generic/motion-film/starter.md` | `3ab3bd3426e90ba0` |
 | `references/platforms/generic/motion-film/story-and-copy.md` | `b276335346bd8cb3` |
 | `references/platforms/generic/motion-film/visual-vocabulary.md` | `09d7fea454bd4d71` |
+| `references/platforms/generic/motion-film/voiceover.md` | `13e3c28c58fc1739` |
+| `scripts/video-line/make_voiceover.py` | `6c5b18bd61f6df06` |
 | `references/platforms/generic/specs.md` | `842363069e8489ca` |
 | `references/platforms/generic/motion-film/style-derivation.md` | `ce5310aedf7cfa7b` |
 | `references/platforms/generic/motion-film/web-first.md` | `1768c3eb235366af` |
@@ -193,7 +196,7 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 | 文件 | SHA-256 前 16 位 |
 |---|---|
 | `scripts/video-line/check_delivery.py` | `99de3a28591a1fb9` |
-| `scripts/video-line/check_environment.py` | `f80a766e01e9db20` |
+| `scripts/video-line/check_environment.py` | `bce54accd2e30c7b` |
 | `scripts/video-line/init_project.py` | `66699e69a3260bd8` |
 | `scripts/video-line/make_sfx.py` | `7c4cb127d93096ea` |
 | `scripts/video-line/mix_audio.py` | `3f0a3e4f51ab917c` |
@@ -205,7 +208,7 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 |---|---|
 | `tests/integration.mjs` | `f717acf428b04b08` |
 | `tests/test_check_social_delivery.py` | `c87001ab1b93f4aa` |
-| `tests/test_video_line_regressions.py` | `914e592ff71e8a1b` |
+| `tests/test_video_line_regressions.py` | `ee0333c604ee4036` |
 
 ### 4.10 平台模板 · 微信
 
@@ -330,6 +333,7 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 
 | 版本 | 说明 |
 |---|---|
+| **v1.5.0** | **补上配音能力，并明确禁用系统机器音。** ①新增 `motion-film/voiceover.md`：优先级链为用户提供 → **edge-tts** → 其他免费 TTS → **停下来问用户**；按片子气质选音色（性格→性别/语速/音高的映射表）并把理由写进 `plan.json.voiceover`；`say` / SAPI / eSpeak 一律禁用，**没有配音优于机器音**。②新增 `scripts/video-line/make_voiceover.py`：`--doctor` 体检、`--list-voices` 列音色、按 plan 逐幕生成配音与 SRT；edge-tts 输出为 24kHz mp3，自动转 48kHz 单声道 PCM wav；缺 edge-tts 时退出码 3（要求用户决定），**不降级**。③`check_environment.py` 增加 TTS 探测与禁用引擎识别，写入 `details.tts`，**不阻塞渲染**。④`pipeline-notes.md` 第 11 条由 `say` 用法改为 edge-tts 的正确用法与参数上限。⑤`SKILL.md` 第 6 步改为「配音、配乐与音效」。分册 18 → 19，脚本 6 → 7，回归测试 131 → 137 项。 |
 | **v1.4.0** | **影片形式通用化：片型由内容决定，不再一律做成产品片。** ①形式 `generic/product-video` → `generic/motion-film`，目录 `references/platforms/generic/product-video/` → `motion-film/`；**旧 ID 不再兼容**（`LEGACY_ALIAS` 已移除，旧 plan.json 会报错）。②新增 `filmKind`（`product` / `evidence` / `explainer` / `story`）：`check_delivery.py` 按片型分派必备项——`product` 要求功能主张与原组件，`evidence`/`explainer` 要求 FACTS 或 RESEARCH，`story` 不要求主张但建议 `fictionNote`。③**不声明 `filmKind` 等于 `product`**，默认严格度与 v1.3.0 完全一致；任何片型都不许假造界面。④SKILL.md、routing、specs、README 同步改为「影片 + 片型」表述。回归测试 122 → 131 项。 |
 | **v1.3.0** | **补上「只有网址」这一条最常见路径。** ①新增 `motion-film/web-first.md`：A/B/C 三级证据源（仓库 / 素材 / 网址），每级能做什么、不能做什么；公开来源清单（官网、文档、changelog、定价、公开仓库、数据集）与内容挖掘三层；三条硬线——只用公开可引用内容、不用泄露与付费墙内容、**不假造界面**。②新增 `motion-film/research-brief.md`：`RESEARCH.md` 契约（四问 + 证据级别与边界 + 与 FACTS/推导的关系），B/C 级必写。③`direction.md` §2 增加「证据级别 → 允许的信息形状」约束（C 级不能做 Workflow）。④`repo-and-style.md` 与 `component-pipeline.md` 开头加分流，避免只有网址时硬套仓库流程。⑤`check_delivery.py` 新增 `evidenceLevel` 解析与 `research_checks`：B/C 级缺 `RESEARCH.md` 报 error；功能镜头的原组件要求在非 repo 级别降级为 warning（**降级不等于放开伪造**）。⑥分册 15 → 18。回归测试 116 → 122 项。 |
 | **v1.2.0** | **风格从「挑」改为「推导」，并补上节奏与内部溯源。** ①新增 `motion-film/style-derivation.md`：8 种信息形状 → 10 种运动语言 → 5 个性格滑块 → 单帧主构成 → 5 条不变量 + 3 条禁令；给主题或数据即可自行推导风格，不再需要用户先选风格。②新增 `motion-film/rhythm-brief.md`：路线（连续/蒙太奇/混合）、能量曲线（3 秒钩子、37% 爆点、停顿后砸落）、每小节事件密度、死时间判据。③`direction.md` 新增 §0 定标杆（学什么/绝不拿什么）；§3 由「各轴挑一个」改为「三种表达逻辑推导」并把轴表降级为手法库；§5 反重复改为六项（结构/开场/签名镜头/镜头路线/配乐形状/结尾）至少四项不同的硬判据。④`review.md` 新增独立审片人、必问「哪一段开始走神」、反馈四件套（时间码/镜头 ID/元素/源码位置）。⑤新增内部溯源契约 `provenance.md`（六形式共用一份 `evidence/FACTS.md`）；`check_social_delivery.py` 按「示意不惩罚、宣称事实无出处才阻断」分级校验。**FACTS 为内控底账，不随片交付、不主动展示。**⑥`plan.json` 新增 `styleDerivation` 字段，`--check-plan` 逐项校验。⑦分册 13 → 15。回归测试 98 → 116 项。 |
