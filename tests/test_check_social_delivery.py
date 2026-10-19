@@ -250,7 +250,7 @@ class TestWechatImageText(Base):
         self.make_cards(12)
         rc, out = self.run_check()
         self.assertEqual(rc, 0, out)
-        self.assertIn("≤9（稳妥口径）", out)
+        self.assertIn("稳妥口径只到 9 张", out)
 
     def test_title_over_64_is_error(self):
         self.make_cards(6)
@@ -433,7 +433,7 @@ class TestXhsImageText(Base):
         self.write_meta()
         rc, out = self.run_check(self.FORM)
         self.assertEqual(rc, 1, out)
-        self.assertIn("超过上限 18 张", out)
+        self.assertIn("超过官方上限 18 张", out)
 
     def test_title_over_20_is_error(self):
         self.make_cards(6, sub=self.SUB)
@@ -461,7 +461,18 @@ class TestXhsImageText(Base):
         self.write_meta(topics=[f"#tag{i}" for i in range(16)])
         rc, out = self.run_check(self.FORM)
         self.assertEqual(rc, 0, out)
-        self.assertIn("超过建议上限 15", out)
+        # 话题上限口径不一（15 vs 10）：16 个超过官方宣称的 15 个，仍只 WARN，附原文
+        self.assertIn("共 16 个，超过官方上限 15 个", out)
+        self.assertIn("话题数量上限为官方口径不一项", out)
+
+    def test_topics_in_uncertain_band_warns_with_safe_value(self):
+        """12 个话题落在「稳妥 10 ~ 官方 15」之间：WARN 并给出稳妥口径，而不是判 OK。"""
+        self.make_cards(6, sub=self.SUB)
+        self.write_meta(topics=[f"#tag{i}" for i in range(12)])
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("官方上限 15 个", out)
+        self.assertIn("稳妥口径", out)
 
     def test_gif_is_rejected(self):
         self.make_cards(6, sub=self.SUB)
@@ -638,6 +649,257 @@ class TestCli(Base):
         self.assertEqual(rc, 0, out)
         self.assertIn("wechat/image-text", out)
         self.assertIn("xiaohongshu/image-text", out)
+
+
+# ───────────────────────────────────── 不确定规格（uncertainty）
+
+class TestUncertaintySpecs(Base):
+    """social_specs.json 里的口径不一项目必须被脚本消费，而不是只当注释。"""
+
+    def load_module(self):
+        sys.path.insert(0, os.path.join(SKILL_DIR, "scripts"))
+        import check_social_delivery as mod
+        return mod
+
+    def test_specs_with_uncertainty_use_safe_max(self):
+        """凡带 uncertainty 的上限项，都必须给出 safeMax，否则灰区无从判断。"""
+        with open(SPECS_FILE, encoding="utf-8") as fh:
+            specs = json.load(fh)
+
+        def walk(node, path):
+            if isinstance(node, dict):
+                if "uncertainty" in node and "max" in node:
+                    self.assertIn("safeMax", node,
+                                  f"{path} 有 uncertainty 却没有 safeMax，脚本无法判定稳妥口径")
+                for k, v in node.items():
+                    walk(v, f"{path}/{k}")
+            elif isinstance(node, list):
+                for i, v in enumerate(node):
+                    walk(v, f"{path}[{i}]")
+
+        walk(specs, "")
+        # 至少确认已知的几项确实带 safeMax
+        forms = specs["platforms"]
+        self.assertEqual(forms["wechat"]["forms"]["image-text"]["cardCount"]["safeMax"], 9)
+        self.assertEqual(forms["xiaohongshu"]["forms"]["image-text"]["noteCount"]["safeMax"], 9)
+        self.assertEqual(forms["xiaohongshu"]["forms"]["image-text"]["topics"]["safeMax"], 10)
+
+    def test_uncertain_max_splits_band(self):
+        m = self.load_module()
+        soft, hard, u = m.uncertain_max({"max": 18, "safeMax": 9, "uncertainty": "口径不一"})
+        self.assertEqual((soft, hard), (9, 18))
+        self.assertIsNotNone(u)
+
+    def test_uncertain_max_without_declaration_has_no_band(self):
+        m = self.load_module()
+        soft, hard, u = m.uncertain_max({"max": 20})
+        self.assertEqual((soft, hard), (20, 20))
+        self.assertIsNone(u)
+
+    def test_uncertain_max_swapped_bounds_do_not_crash(self):
+        """safeMax 写得比 max 还大时不崩，且 soft <= hard。"""
+        m = self.load_module()
+        soft, hard, _ = m.uncertain_max({"max": 5, "safeMax": 9, "uncertainty": "x"})
+        self.assertLessEqual(soft, hard)
+
+    def test_uncertainty_object_form_is_accepted(self):
+        """uncertainty 允许写成 {"note":…, "safeMax":…}。"""
+        m = self.load_module()
+        soft, hard, u = m.uncertain_max(
+            {"max": 900, "uncertainty": {"note": "时长口径不一", "safeMax": 900}})
+        self.assertEqual((soft, hard), (900, 900))
+        self.assertIn("时长", u["note"])
+
+    def test_wechat_cards_in_band_warn_and_are_listed(self):
+        """12 张落在 9~20 的灰区：WARN + 把 uncertainty 原文写进报告。"""
+        with tempfile.TemporaryDirectory() as tmp:
+            export = os.path.join(tmp, "export")
+            for i in range(12):
+                write_png(os.path.join(export, "wechat", "image-text", f"{i:02d}.png"),
+                          1080, 1440)
+            write_json(os.path.join(export, "wechat", "image-text", "meta.json"),
+                       {"title": "标题", "cardTexts": ["x"]})
+            rc, out = self.run_check(forms="wechat/image-text", project=tmp)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("稳妥口径只到 9 张", out)
+        self.assertIn("官方口径不一项", out)
+
+
+# ───────────────────────────────────── plan.json 契约
+
+class TestCheckPlan(Base):
+    def write_plan(self, tmp, plan: dict, name="plan.json"):
+        path = os.path.join(tmp, name)
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump(plan, fh, ensure_ascii=False)
+        return path
+
+    def run_plan(self, path):
+        proc = subprocess.run([PY, SCRIPT, "--check-plan", path],
+                              capture_output=True, text=True)
+        return proc.returncode, proc.stdout + proc.stderr
+
+    def test_valid_plan_passes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p = self.write_plan(tmp, {
+                "selection": {"wechat": ["mp-article", "image-text", "channels"],
+                              "xiaohongshu": ["image-text"]},
+                "factSource": "wechat/mp-article",
+                "order": ["wechat/mp-article", "wechat/image-text",
+                          "xiaohongshu/image-text", "wechat/channels"],
+                "audience": "technical",
+            })
+            rc, out = self.run_plan(p)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("结论：通过", out)
+
+    def test_default_plan_path_under_project(self):
+        """--check-plan 不带参数时读 <project>/plan.json。"""
+        with tempfile.TemporaryDirectory() as tmp:
+            self.write_plan(tmp, {
+                "selection": {"wechat": ["mp-article"]},
+                "factSource": "wechat/mp-article",
+                "order": ["wechat/mp-article"],
+                "audience": "consumer",
+            })
+            proc = subprocess.run([PY, SCRIPT, "--check-plan", "--project", tmp],
+                                  capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+
+    def test_fact_source_outside_selection_is_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p = self.write_plan(tmp, {
+                "selection": {"wechat": ["mp-article"]},
+                "factSource": "xiaohongshu/image-text",
+                "order": ["wechat/mp-article"],
+                "audience": "technical",
+            })
+            rc, out = self.run_plan(p)
+        self.assertEqual(rc, 1, out)
+        self.assertIn("不在 selection 内", out)
+
+    def test_fact_source_must_come_first(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p = self.write_plan(tmp, {
+                "selection": {"wechat": ["mp-article", "image-text"]},
+                "factSource": "wechat/mp-article",
+                "order": ["wechat/image-text", "wechat/mp-article"],
+                "audience": "technical",
+            })
+            rc, out = self.run_plan(p)
+        self.assertEqual(rc, 1, out)
+        self.assertIn("必须先定事实源再派生", out)
+
+    def test_static_after_dynamic_is_error(self):
+        """「先静后动」被破坏时必须报错。"""
+        with tempfile.TemporaryDirectory() as tmp:
+            p = self.write_plan(tmp, {
+                "selection": {"wechat": ["channels", "mp-article"]},
+                "factSource": "wechat/channels",
+                "order": ["wechat/channels", "wechat/mp-article"],
+                "audience": "technical",
+            })
+            rc, out = self.run_plan(p)
+        self.assertEqual(rc, 1, out)
+        self.assertIn("先静后动", out)
+
+    def test_order_mismatch_is_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p = self.write_plan(tmp, {
+                "selection": {"wechat": ["mp-article", "image-text"]},
+                "factSource": "wechat/mp-article",
+                "order": ["wechat/mp-article"],
+                "audience": "technical",
+            })
+            rc, out = self.run_plan(p)
+        self.assertEqual(rc, 1, out)
+        self.assertIn("order 与 selection 不一致", out)
+
+    def test_duplicate_order_entry_is_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p = self.write_plan(tmp, {
+                "selection": {"wechat": ["mp-article"]},
+                "factSource": "wechat/mp-article",
+                "order": ["wechat/mp-article", "wechat/mp-article"],
+                "audience": "technical",
+            })
+            rc, out = self.run_plan(p)
+        self.assertEqual(rc, 1, out)
+        self.assertIn("重复", out)
+
+    def test_unknown_platform_is_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p = self.write_plan(tmp, {
+                "selection": {"douyin": ["video"]},
+                "factSource": "douyin/video",
+                "order": ["douyin/video"],
+                "audience": "consumer",
+            })
+            rc, out = self.run_plan(p)
+        self.assertEqual(rc, 1, out)
+        self.assertIn("未知平台", out)
+
+    def test_unknown_form_is_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p = self.write_plan(tmp, {
+                "selection": {"wechat": ["podcast"]},
+                "factSource": "wechat/podcast",
+                "order": ["wechat/podcast"],
+                "audience": "consumer",
+            })
+            rc, out = self.run_plan(p)
+        self.assertEqual(rc, 1, out)
+        self.assertIn("没有形式", out)
+
+    def test_missing_selection_is_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p = self.write_plan(tmp, {"audience": "consumer"})
+            rc, out = self.run_plan(p)
+        self.assertEqual(rc, 1, out)
+        self.assertIn("缺少 selection", out)
+
+    def test_missing_order_is_warning_only(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p = self.write_plan(tmp, {
+                "selection": {"wechat": ["mp-article"]},
+                "factSource": "wechat/mp-article",
+                "audience": "consumer",
+            })
+            rc, out = self.run_plan(p)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("没有 order", out)
+        # --strict 下 warning 也会失败
+        proc = subprocess.run([PY, SCRIPT, "--check-plan", p, "--strict"],
+                              capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 1, proc.stdout)
+
+    def test_broken_json_reports_error_not_traceback(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p = os.path.join(tmp, "plan.json")
+            with open(p, "w", encoding="utf-8") as fh:
+                fh.write("{not json")
+            rc, out = self.run_plan(p)
+        self.assertEqual(rc, 1, out)
+        self.assertIn("解析失败", out)
+        self.assertNotIn("Traceback", out)
+
+    def test_missing_file_reports_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rc, out = self.run_plan(os.path.join(tmp, "nope.json"))
+        self.assertEqual(rc, 1, out)
+        self.assertIn("找不到", out)
+
+    def test_check_plan_does_not_need_project_export(self):
+        """--check-plan 是纯契约校验，不该要求产出目录存在。"""
+        with tempfile.TemporaryDirectory() as tmp:
+            p = self.write_plan(tmp, {
+                "selection": {"generic": ["product-video"]},
+                "factSource": "generic/product-video",
+                "order": ["generic/product-video"],
+                "audience": "executive",
+            })
+            rc, out = self.run_plan(p)
+        self.assertEqual(rc, 0, out)
 
 
 if __name__ == "__main__":

@@ -146,6 +146,19 @@
 - `selection` 的键是平台 ID，值是该平台下选中的形式 ID（**不带平台前缀**）。
 - **后续所有步骤只从 `plan.json` 读形式**，不允许在某一步凭记忆改；确需变更时改 `plan.json` 并在 `BRIEF.md` 记一条变更理由。
 
+### 7.1 写完立刻校验（机器契约）
+
+`plan.json` 不只是给自己看的笔记——写错就是「静默改形式」的源头。写完立刻跑：
+
+```sh
+python3 <skill-dir>/scripts/check_social_delivery.py --check-plan <content-dir>/plan.json
+# 或：--check-plan 不带路径 + --project <content-dir>，读 <content-dir>/plan.json
+```
+
+它只查机器能判定的部分：形式是否已登记、`factSource` 是否在 `selection` 内、`order` 与 `selection` 是否同集合、**事实源是否排在第一位**、**静态形式是否全部在动态形式之前**、`audience` 是否给了。叙事好坏不归脚本管。
+
+退出码 `0` 通过 / `1` 有 error（或 `--strict` 下有 warning）/ `2` 用法问题。**这不是可选项**——与「产出物自检」同一条纪律：能用脚本判的就别靠自觉。
+
 ---
 
 ## 8. 目录布局（多选时）

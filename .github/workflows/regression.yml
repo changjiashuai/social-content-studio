@@ -1,0 +1,83 @@
+name: regression
+
+# 基线纪律：改了脚本、规格表或模板之后必须跑回归（见 references/BASELINE.md §3.3）。
+# 这里把它自动化，免得靠人自觉。
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  offline:
+    name: 离线回归（纯标准库，无需 ffmpeg / 网络）
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: 单元测试 + 回归
+        run: python -m unittest discover -s tests -v
+
+      - name: 脚本语法检查
+        run: |
+          python -m py_compile scripts/check_social_delivery.py
+          for f in scripts/video-line/*.py; do python -m py_compile "$f"; done
+
+  templates:
+    name: 模板画布尺寸探测
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # --probe 只解析 HTML 里的画布尺寸，不需要装 puppeteer
+      - name: probe
+        run: node scripts/render_social_assets.mjs --probe assets/platforms
+
+      - name: 规格 JSON 可解析
+        run: python3 -c "import json;json.load(open('scripts/social_specs.json'))"
+
+  integration:
+    name: 集成回归（真实构建 + 无头浏览器）
+    runs-on: ubuntu-latest
+    # 需要真实依赖与浏览器，失败时允许跳过，不阻塞主分支
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # 用起步工程自己的依赖清单装，和真实使用路径一致
+      - name: 安装起步工程依赖
+        working-directory: assets/platforms/generic/starter
+        run: |
+          npm install --no-audit --no-fund --maxsockets 2
+          npx playwright install --with-deps chromium
+
+      - name: 初始化一个视频工程
+        run: |
+          python3 scripts/video-line/init_project.py \
+            --output "$RUNNER_TEMP/video" --style default
+
+      - name: integration.mjs
+        run: |
+          node tests/integration.mjs \
+            --modules assets/platforms/generic/starter/node_modules

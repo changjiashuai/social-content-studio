@@ -116,6 +116,60 @@ class Starter(unittest.TestCase):
             for heading in ['参考拆解','产品气质','三个方向','选择与理由','画面规范','镜头表']:self.assertIn(heading,text)
             self.assertIn('不要照抄',text)
             self.assertTrue((project/'src/engine.js').is_file())
+    def test_preset_controls_frame_and_duration(self):
+        """--preset 决定画幅与时长基准，并写进 plan.json 与 BRIEF.md。"""
+        cases = {
+            'generic': (1920, 1080),
+            'xhs-vertical': (1080, 1920),
+            'channels-horizontal': (1920, 1080),
+            'channels-vertical': (1080, 1920),
+        }
+        import tempfile
+        for preset, (w, h) in cases.items():
+            with tempfile.TemporaryDirectory() as d:
+                project = Path(d) / 'video'
+                subprocess.run([sys.executable, str(ROOT / 'scripts/video-line/init_project.py'),
+                                '--output', str(project), '--style', 'default',
+                                '--preset', preset], capture_output=True, check=True)
+                plan = json.loads((project / 'plan.json').read_text())
+                self.assertEqual((plan['width'], plan['height']), (w, h), preset)
+                self.assertEqual(plan['preset'], preset)
+                self.assertIn(preset, (project / 'BRIEF.md').read_text())
+
+    def test_default_preset_is_backwards_compatible(self):
+        """不给 --preset 时行为必须和 v1.0.3 一致：横版 1920x1080。"""
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            project = Path(d) / 'video'
+            subprocess.run([sys.executable, str(ROOT / 'scripts/video-line/init_project.py'),
+                            '--output', str(project), '--style', 'default'],
+                           capture_output=True, check=True)
+            plan = json.loads((project / 'plan.json').read_text())
+            self.assertEqual((plan['width'], plan['height'], plan['duration']), (1920, 1080, 10))
+
+    def test_unknown_preset_is_rejected(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            project = Path(d) / 'video'
+            proc = subprocess.run([sys.executable, str(ROOT / 'scripts/video-line/init_project.py'),
+                                   '--output', str(project), '--style', 'default',
+                                   '--preset', 'tiktok'],
+                                  capture_output=True, text=True)
+            self.assertNotEqual(proc.returncode, 0)
+            self.assertFalse((project / 'plan.json').exists())
+
+    def test_xhs_preset_brief_carries_hook_requirement(self):
+        """小红书预设必须把「前 3 秒即钩子」和竖版封面要求写进 BRIEF，而不是只改数字。"""
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            project = Path(d) / 'video'
+            subprocess.run([sys.executable, str(ROOT / 'scripts/video-line/init_project.py'),
+                            '--output', str(project), '--style', 'default',
+                            '--preset', 'xhs-vertical'], capture_output=True, check=True)
+            brief = (project / 'BRIEF.md').read_text()
+            self.assertIn('前 3 秒即钩子', brief)
+            self.assertIn('1080×1440', brief)
+
     def test_sample_views_cover_plan_shots(self):
         with tempfile.TemporaryDirectory() as d:
             repo=Path(d)/'repo';repo.mkdir();project=Path(d)/'video'

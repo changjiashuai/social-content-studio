@@ -49,6 +49,8 @@ LEVEL_ORDER = {OK: 0, INFO: 1, WARN: 2, ERROR: 3}
 
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"}
 VIDEO_EXTS = {".mp4", ".mov", ".m4v"}
+# ffprobe 失败的原因（本次进程内累积）。报告末尾会打印，避免「探测失败」看起来像「文件没问题」。
+PROBE_ERRORS: list[str] = []
 
 
 # ---------------------------------------------------------------- 基础设施
@@ -255,7 +257,10 @@ def probe_video(path: str) -> dict | None:
     try:
         out = subprocess.run(cmd, capture_output=True, timeout=60, check=True).stdout
         data = json.loads(out.decode("utf-8", "replace"))
-    except Exception:
+    except (OSError, subprocess.SubprocessError, ValueError) as exc:
+        # 不要把「ffprobe 不可用」和「文件坏了」混成同一种静默 None：
+        # 调用方据此降级为 WARN，交付时能看到未校验的原因。
+        PROBE_ERRORS.append(f"{os.path.basename(path)}: {type(exc).__name__}: {exc}")
         return None
     v = next((s for s in data.get("streams", []) if s.get("codec_type") == "video"), None)
     a = next((s for s in data.get("streams", []) if s.get("codec_type") == "audio"), None)
@@ -364,6 +369,92 @@ def check_image(path: str, spec_ratio: dict, ch: str, item: str, rep: Report,
             if colors:
                 rep.add(ch, item, INFO, f"{name} 调色板 {colors} 色")
     return w, h
+
+
+# ------------------------------------------------------- 不确定规格（uncertainty）
+
+def uncertain_of(tspec: dict) -> dict | None:
+    """从一个规格节点里取出不确定声明。
+
+    规格里的不确定项统一写成：
+
+        {"max": 18, "safeMax": 9, "uncertainty": "…", "source": "..."}
+
+    - max     ：官方宣称的上限
+    - safeMax ：稳妥上限（部分入口 / 部分资料的实际上限）；缺省则没有灰区
+    - uncertainty：原文说明，交付时原样引用
+
+    uncertainty 也允许写成 {"note":…, "safeMax":…}。无声明时返回 None。
+    """
+    if not isinstance(tspec, dict):
+        return None
+    raw = tspec.get("uncertainty")
+    if raw is None:
+        return None
+    if isinstance(raw, dict):
+        return {
+            "note": str(raw.get("note") or "").strip(),
+            "safe": raw.get("safeMax", raw.get("safe_max")),
+            "source": str(tspec.get("source") or raw.get("source") or ""),
+        }
+    return {
+        "note": str(raw).strip(),
+        "safe": tspec.get("safeMax"),
+        "source": str(tspec.get("source") or ""),
+    }
+
+
+def uncertain_max(tspec: dict) -> tuple:
+    """把「上限」拆成 (soft, hard, uncertainty)。
+
+    - 无 uncertainty：soft == hard == tspec["max"]，没有灰区。
+    - 有 uncertainty 且有 safeMax：hard = max（官方宣称上限），soft = safeMax（稳妥上限）。
+      落在 (soft, hard] 属于「官方口径不一」的灰区 —— 报 WARN 并附原文，不报 ERROR。
+    - 有 uncertainty 但没 safeMax：soft == hard == max，只把原文当 INFO 附上。
+    """
+    u = uncertain_of(tspec)
+    hard = tspec.get("max")
+    if u is None:
+        return hard, hard, None
+    soft = u["safe"] if u["safe"] is not None else hard
+    if soft > hard:            # 规格写反了也不让脚本崩
+        soft, hard = hard, soft
+    return soft, hard, u
+
+
+def report_uncertainty(rep: Report, ch: str, item: str, u: dict | None,
+                       label: str, actual=None, expected=None):
+    """把「这一项是口径不一的」显式写进报告，让交付说明能原样引用。"""
+    if not u:
+        return
+    msg = f"{label}为官方口径不一项" + (f"（稳妥值 ≤{u['safe']}）" if u["safe"] is not None else "")
+    if u["note"]:
+        msg += f"：{u['note']}"
+    rep.add(ch, item, INFO, msg, actual, expected)
+
+
+def judge_count(n: int, tspec: dict, rep: Report, ch: str, item: str, label: str,
+                unit: str = "张", over_level: str = ERROR):
+    """按「稳妥 / 官方」两档判断数量类规格，并把口径不一写进报告。
+
+    over_level：超过官方上限时的等级。图片数量这类硬规格用 ERROR；
+    话题数量这类「影响分发而非必然失败」的软指标传 WARN。
+
+    返回 True 表示 n 落在稳妥上限以内（可用于继续做「建议区间」判断）。
+    """
+    soft, hard, u = uncertain_max(tspec)
+    if n > hard:
+        rep.add(ch, item, over_level, f"共 {n} {unit}，超过官方上限 {hard} {unit}", n, hard)
+        report_uncertainty(rep, ch, item, u, label, n, hard)
+        return False
+    if n > soft:
+        rep.add(ch, item, WARN,
+                f"共 {n} {unit}：官方上限 {hard} {unit}，但稳妥口径只到 {soft} {unit} —— 以编辑器实际提示为准",
+                n, f"≤{soft}{unit}（稳妥口径）")
+        report_uncertainty(rep, ch, item, u, label, n, hard)
+        return False
+    report_uncertainty(rep, ch, item, u, label, n, hard)
+    return True
 
 
 def check_chars(rep: Report, ch: str, item: str, value, max_chars: int,
@@ -503,17 +594,13 @@ def check_wechat_image_text(specs: dict, export_root: str, rep: Report):
         return
 
     cnt = spec["cardCount"]
-    if n > cnt["maxSubscriptionHelper"]:
-        rep.add(ch, "图片数量", ERROR, f"共 {n} 张，超过官方上限 {cnt['maxSubscriptionHelper']} 张", n, cnt["maxSubscriptionHelper"])
-    elif n > cnt["maxMobile"]:
-        rep.add(ch, "图片数量", WARN,
-                f"共 {n} 张：订阅号助手端上限 {cnt['maxSubscriptionHelper']} 张，但部分入口为 {cnt['maxMobile']} 张",
-                n, f"≤{cnt['maxMobile']}（稳妥口径）")
-    lo, hi = cnt["recommended"]
-    if not (lo <= n <= hi):
-        rep.add(ch, "图片数量", WARN, f"共 {n} 张，建议 {lo}–{hi} 张", n, f"{lo}–{hi}")
-    else:
-        rep.add(ch, "图片数量", OK, f"共 {n} 张，落在建议区间 {lo}–{hi}")
+    # 口径不一：官方端 20 张、部分入口 9 张。超过稳妥值 WARN，超过官方上限才 ERROR。
+    if judge_count(n, cnt, rep, ch, "图片数量", "图片数量上限"):
+        lo, hi = cnt["recommended"]
+        if not (lo <= n <= hi):
+            rep.add(ch, "图片数量", WARN, f"共 {n} 张，建议 {lo}–{hi} 张", n, f"{lo}–{hi}")
+        else:
+            rep.add(ch, "图片数量", OK, f"共 {n} 张，落在建议区间 {lo}–{hi}")
 
     if n >= 3:
         rep.add(ch, "列表缩略图", WARN,
@@ -805,17 +892,12 @@ def check_xhs_image_text(specs: dict, export_root: str, rep: Report):
         rep.add(ch, "图片组", ERROR, "没有找到任何图集图片（非 cover 前缀的图片）")
     else:
         cnt = spec["noteCount"]
-        if n > cnt["max"]:
-            rep.add(ch, "图片数量", ERROR, f"共 {n} 张，超过上限 {cnt['max']} 张", n, cnt["max"])
-        elif n > cnt.get("alternateMax", cnt["max"]):
-            rep.add(ch, "图片数量", WARN,
-                    f"共 {n} 张：多数资料上限 {cnt['max']} 张，部分入口为 {cnt.get('alternateMax')} 张，以编辑器提示为准",
-                    n, f"≤{cnt.get('alternateMax')}（稳妥口径）")
-        lo, hi = cnt["recommended"]
-        if not (lo <= n <= hi):
-            rep.add(ch, "图片数量", WARN, f"共 {n} 张，建议 {lo}–{hi} 张（过少显薄，过多完读率下降）", n, f"{lo}–{hi}")
-        else:
-            rep.add(ch, "图片数量", OK, f"共 {n} 张，落在建议区间 {lo}–{hi}")
+        if judge_count(n, cnt, rep, ch, "图片数量", "图片数量上限"):
+            lo, hi = cnt["recommended"]
+            if not (lo <= n <= hi):
+                rep.add(ch, "图片数量", WARN, f"共 {n} 张，建议 {lo}–{hi} 张（过少显薄，过多完读率下降）", n, f"{lo}–{hi}")
+            else:
+                rep.add(ch, "图片数量", OK, f"共 {n} 张，落在建议区间 {lo}–{hi}")
 
         # 逐张比例 + 全篇比例一致性（小红书整篇只允许一种比例）
         first_ratio = None
@@ -958,9 +1040,10 @@ def _check_topics(rep: Report, ch: str, topics, tspec: dict):
     n = len(topics) if isinstance(topics, list) else len(str(topics).split())
     hi = tspec.get("max", 15)
     lo = tspec.get("min", 5)
-    if n > hi:
-        rep.add(ch, "话题标签", WARN, f"话题 {n} 个超过建议上限 {hi} 个", n, f"≤{hi}")
-    elif n < lo:
+    if not judge_count(n, tspec, rep, ch, "话题标签", "话题数量上限", unit="个",
+                       over_level=WARN):
+        return
+    if n < lo:
         rep.add(ch, "话题标签", WARN, f"话题仅 {n} 个，建议 {lo}–{hi} 个", n, f"{lo}–{hi}")
     else:
         rep.add(ch, "话题标签", OK, f"话题 {n} 个，落在建议区间 {lo}–{hi}")
@@ -1016,6 +1099,146 @@ LEGACY_ALIAS = {
     "wechat-channels": "wechat/channels",
     "product-video": "generic/product-video",
 }
+
+
+# ------------------------------------------------------- plan.json 契约校验
+
+# 路由文档定义的执行顺序：① 事实源 ② 静态形式 ③ 动态形式（见 core/routing.md §5.2）
+DYNAMIC_FORMS = {"wechat/channels", "xiaohongshu/video", "generic/product-video"}
+STATIC_FORMS = {"wechat/image-text", "wechat/mp-article", "xiaohongshu/image-text"}
+
+
+def check_plan(plan_path: str, specs: dict) -> Report:
+    """校验 plan.json 是否符合 core/routing.md §7 的契约。
+
+    只查「机器能判定」的部分：形式是否登记、selection / order / factSource 是否自洽、
+    执行顺序是否违反「事实源 → 静态 → 动态」。叙事好坏不归脚本管。
+    """
+    rep = Report()
+    ch = "plan.json"
+
+    try:
+        with open(plan_path, encoding="utf-8") as fh:
+            plan = json.load(fh)
+    except FileNotFoundError:
+        rep.add(ch, "文件", ERROR, f"找不到 {plan_path}")
+        return rep
+    except (OSError, ValueError) as exc:
+        rep.add(ch, "解析", ERROR, f"plan.json 解析失败：{exc}")
+        return rep
+
+    if not isinstance(plan, dict):
+        rep.add(ch, "结构", ERROR, "plan.json 顶层必须是对象")
+        return rep
+
+    selection = plan.get("selection")
+    if not isinstance(selection, dict) or not selection:
+        rep.add(ch, "selection", ERROR, '缺少 selection（形如 {"wechat": ["mp-article"]}）')
+        return rep
+
+    platforms = specs.get("platforms", {})
+    selected: list[str] = []
+    bad_platform = False
+    for platform, forms in selection.items():
+        if platform not in platforms:
+            rep.add(ch, "selection", ERROR,
+                    f"未知平台 {platform!r}，已登记：{', '.join(platforms)}")
+            bad_platform = True
+            continue
+        known = platforms[platform].get("forms", {})
+        if isinstance(forms, str):
+            forms = [forms]
+        if not isinstance(forms, list) or not forms:
+            rep.add(ch, "selection", ERROR, f"{platform} 的形式列表为空")
+            continue
+        for f in forms:
+            fid = f"{platform}/{f}"
+            if f not in known:
+                rep.add(ch, "selection", ERROR,
+                        f"{platform} 下没有形式 {f!r}，可用：{', '.join(known)}")
+                continue
+            if fid not in FORM_CHECKS:
+                rep.add(ch, "selection", WARN, f"{fid} 已登记规格但没有自检函数，交付前无法机器校验")
+            selected.append(fid)
+
+    if not selected:
+        if not bad_platform:
+            rep.add(ch, "selection", ERROR, "selection 里没有任何有效形式")
+        return rep
+    rep.add(ch, "selection", OK, f"已选 {len(selected)} 个形式：{', '.join(selected)}")
+
+    # factSource 必须在 selection 里
+    fs = plan.get("factSource")
+    if not fs:
+        rep.add(ch, "factSource", WARN, "没有 factSource —— 多形式时口径同源就无从校验")
+    elif fs not in selected:
+        rep.add(ch, "factSource", ERROR,
+                f"factSource {fs!r} 不在 selection 内（已选：{', '.join(selected)}）")
+    else:
+        rep.add(ch, "factSource", OK, f"事实源 {fs}")
+
+    # order 必须与 selection 一致（同集合），且满足 事实源 → 静态 → 动态
+    order = plan.get("order")
+    if order is None:
+        rep.add(ch, "order", WARN, "没有 order，执行顺序未固定")
+        return rep
+    if not isinstance(order, list) or not all(isinstance(x, str) for x in order):
+        rep.add(ch, "order", ERROR, "order 必须是字符串数组")
+        return rep
+
+    if len(order) != len(set(order)):
+        rep.add(ch, "order", ERROR, "order 里有重复形式")
+    if set(order) != set(selected):
+        missing = [f for f in selected if f not in order]
+        extra = [f for f in order if f not in selected]
+        detail = []
+        if missing:
+            detail.append(f"order 缺 {', '.join(missing)}")
+        if extra:
+            detail.append(f"order 多出 {', '.join(extra)}")
+        rep.add(ch, "order", ERROR, "order 与 selection 不一致：" + "；".join(detail))
+    else:
+        rep.add(ch, "order", OK, f"order 与 selection 一致（{len(order)} 项）")
+
+    if fs and order and fs in order:
+        if order[0] != fs:
+            rep.add(ch, "order", ERROR,
+                    f"order 第一项是 {order[0]}，但事实源是 {fs} —— 必须先定事实源再派生")
+        else:
+            rep.add(ch, "order", OK, f"事实源排在最前（{fs}）")
+
+    # 动态形式不得排在静态形式之前
+    first_dynamic = None
+    violation = None
+    for fid in order:
+        if fid in DYNAMIC_FORMS and first_dynamic is None:
+            first_dynamic = fid
+        elif fid in STATIC_FORMS and first_dynamic is not None:
+            violation = (fid, first_dynamic)
+            break
+    if violation:
+        rep.add(ch, "order", ERROR,
+                f"静态形式 {violation[0]} 排在动态形式 {violation[1]} 之后 —— "
+                f"「先静后动」是保证口径一致的硬约束")
+    else:
+        rep.add(ch, "order", OK, "静态形式全部在动态形式之前")
+
+    # audience 是追问契约里必填的字段
+    aud = plan.get("audience")
+    if aud is None:
+        rep.add(ch, "audience", WARN, "没有 audience（读者类型），文案密度无从核对")
+    elif not isinstance(aud, str):
+        rep.add(ch, "audience", ERROR, "audience 必须是字符串（如 technical / executive / consumer）")
+    else:
+        rep.add(ch, "audience", OK, f"读者类型 {aud}")
+
+    return rep
+
+
+def write_json_report(path: str, payload: dict):
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(payload, fh, ensure_ascii=False, indent=2)
+    print(f"报告已写入 {path}")
 
 
 # ------------------------------------------------------------------ 主流程
@@ -1111,6 +1334,9 @@ def main() -> int:
     ap.add_argument("--print-specs", action="store_true", help="打印规格后退出")
     ap.add_argument("--form", "--channel", dest="single_form", help="配合 --print-specs，只打印某一形式的规格")
     ap.add_argument("--json", dest="json_out", help="把完整报告写成 JSON 到该路径")
+    ap.add_argument("--check-plan", dest="check_plan_path", nargs="?", const="plan.json",
+                    metavar="PLAN_JSON",
+                    help="只校验 plan.json 契约（默认读内容目录下的 plan.json），不检查产出物")
     args = ap.parse_args()
 
     specs = load_specs()
@@ -1122,6 +1348,26 @@ def main() -> int:
     if args.print_specs:
         print_specs(specs, args.single_form)
         return 0
+
+    if args.check_plan_path:
+        plan_path = args.check_plan_path
+        if plan_path == "plan.json" and args.project:
+            plan_path = os.path.join(args.project, "plan.json")
+        rep = check_plan(plan_path, specs)
+        print(f"plan.json：{os.path.abspath(plan_path)}")
+        print(render_report(rep, specs))
+        c = rep.counts()
+        print(f"\nerror {c[ERROR]} / warn {c[WARN]} / info {c[INFO]} / ok {c[OK]}")
+        bad = bool(c[ERROR]) or (args.strict and c[WARN])
+        print("\n结论：" + ("不通过" if bad else "通过"))
+        if args.json_out:
+            write_json_report(args.json_out, {
+                "plan": os.path.abspath(plan_path),
+                "specVersion": specs["specVersion"],
+                "counts": c,
+                "findings": [asdict(f) for f in rep.findings],
+            })
+        return 1 if bad else 0
 
     if not args.project:
         ap.error("--project 必填（除非用 --print-specs / --list）")
@@ -1161,6 +1407,8 @@ def main() -> int:
 
     if rep.skipped:
         print("跳过项：" + "; ".join(rep.skipped))
+    if PROBE_ERRORS:
+        print("ffprobe 失败（这些文件的时长/编码未校验，不等于合格）：" + "; ".join(PROBE_ERRORS))
 
     if args.json_out:
         payload = {

@@ -1,6 +1,6 @@
 ---
 name: social-content-studio
-version: 1.0.3
+version: 1.1.0
 author: changjiashuai
 license: "AGPL-3.0（见 LICENSE 与 references/THIRD-PARTY.md）"
 description: "社交内容工坊：两级路由驱动的多平台多形式内容生产。先选平台（微信 / 小红书 / 通用），再选该平台的内容形式。微信支持图文（图片消息 / 小绿书）、公众号长文、视频号视频；小红书支持图文笔记、视频笔记；通用承载代码驱动的产品宣传片与版本更新片。产出前强制先问平台再问形式（均支持多选），再进对应流水线；多选时按「事实源 → 静态切片 → 动态切片」串行执行以保证口径一致。通用平台自带完整制作体系：13 个方法论分册 + 6 个工程脚本 + 起步工程 + 默认样式 + 手法样例 + 原创音效，全部原生内置，无外部 skill 依赖。触发词：微信图文、小绿书、公众号文章、公众号排版、视频号、小红书图文、小红书笔记、小红书视频、多平台分发、产品宣传片、版本更新片、changelog、social content、product promo。"
@@ -52,6 +52,7 @@ social-content-studio/
 ├── README.md                       # 能力总表、组织原则、扩展指引、版本记录
 ├── LICENSE                         # AGPL-3.0（作者 changjiashuai）
 ├── agents/openai.yaml              # Agent 界面描述
+├── .github/workflows/regression.yml # CI：离线回归 + 模板探测 + 可选集成回归
 ├── references/
 │   ├── BASELINE.md                 # ★ 基线：能力清单、规格版本、校验命令、扩展契约
 │   ├── THIRD-PARTY.md              # 本包授权范围 + 平台规则引用质量 + 素材版权约束
@@ -188,6 +189,17 @@ python3 <skill-dir>/scripts/video-line/check_delivery.py <video-dir>/plan.json \
 
 HyperFrames 工程使用 `--engine hyperframes`。新工程附 10 秒技术样片（刻意没有风格，只验证链路）和一份只有问题的 `DIRECTION.md`。
 
+**投放预设 `--preset`**（默认 `generic`，与 v1.0.x 行为一致）：产品片体系是同一套，但不同渠道的画幅与节奏要求相反，预设把它们一次定好，并写进 `plan.json.preset` 与 `BRIEF.md`。
+
+| 预设 | 画幅 | 预设带来的硬要求 |
+|---|---|---|
+| `generic` | 1920×1080 | 默认横版，画幅按渠道自定 |
+| `xhs-vertical` | 1080×1920 | 前 3 秒即钩子（不要片头/问候/空镜）；封面单独做 3:4，不用首帧；30s–3min 最稳 |
+| `channels-horizontal` | 1920×1080 | 第 1 帧即默认封面，必须完整；横版封面会被主页裁成 6:7；短标题 ≤16 字 |
+| `channels-vertical` | 1080×1920 | 同上，封面按 1080×1260（6:7） |
+
+预设只定画幅与文字要求，**不替你写方向**——`DIRECTION.md` 仍然要回答产品推导那几问。
+
 **分册索引**（细则都在 `references/platforms/generic/product-video/`）：
 
 | 分册 | 讲什么 |
@@ -235,28 +247,25 @@ node <skill-dir>/tests/integration.mjs --modules <video-dir>/node_modules   # �
 
 ### 微信（[平台包](references/platforms/wechat/PLATFORM.md)）
 
-三条形式的形态、流程、要点、红线与交付清单见平台包；这里只列**必须在动手前知道**的硬约束。
+三条形式的形态、流程、要点、红线与交付清单见平台包。**完整参数以 [wechat/specs.md](references/platforms/wechat/specs.md) 为唯一事实源**，自检脚本也从同一个 `social_specs.json` 读——这里不复制参数，只列**做错了要返工**的三条：
 
-**微信图文（图片消息 / 小绿书）**：横滑浏览、**3:4** 展示（推荐 1080×1440）；≥3 张时列表把**前 3 张裁成 2.35:1**（≤2 张时首图裁 16:9）→ 前 3 张的关键信息必须落在中心安全区；**首图即钩子**（标题 + 一个具体数字），不放 logo；图片数量上限**官方口径不一致**（订阅号助手端 20 张 / 部分入口 9 张）→ 统一写成"以编辑器实际提示为准"，推荐 6–9 张；单图文字建议 ≤60 字；动图总帧数 ≤300；**不支持 live 图**。
-细则 → [image-text.md](references/platforms/wechat/image-text.md)
+- **公众号 HTML 白名单是最大的坑**：`<style>`、`<script>`、外链 CSS、`position`、`@media` 全被清洗，`class` 保留却不生效 → 样式**只能全内联**，图片 `src` 必须换成 `mmbiz.qpic.cn` 素材库地址。
+- **摘要不填会被抓成正文前 54 字**，必须手写；发多条时头条标题压在封面上，标题区要留低干扰。
+- **图片数量官方口径不一致**（订阅号助手端 20 张 / 部分入口 9 张）→ 推荐 6–9 张，脚本对 10–20 张只报警告，交付时写"以编辑器实际提示为准"。
 
-**公众号长文**：标题 ≤64 字（建议 18–30）、摘要 ≤120 字（**不填会抓正文前 54 字**，必须手写）、正文 ≤50000 字；正文图片 ≤500 张、单图 ≤10MB；头条封面 2.35:1（900×383）、次条 1:1（500×500）；**发多条时头条标题会压在封面上**（标题区留低干扰）；**HTML 白名单是最大的坑**——`<style>`、`<script>`、外链 CSS、`position`、`@media` 全被清洗，`id` 被剥离、`class` 保留但不生效 → 样式**只能全内联**；图片 `src` 必须换成 `mmbiz.qpic.cn` 素材库地址。
-细则 → [mp-article.md](references/platforms/wechat/mp-article.md)
-
-**视频号视频**：宽高比 0.33~3.0（建议 9:16 或 16:9）；码率 ≥10Mbps、分辨率 ≥1080p；**H.265 在 Windows Chrome 不能播**，默认导 H.264；封面竖版 1080×1260（6:7），**横版封面在主页会被裁成 6:7**；描述 ≤1000 字（超三行折叠）、**短标题 ≤16 字**且会进搜索场景，必须单独打磨；**第 1 帧即默认封面，必须是完整画面**。
-细则 → [channels.md](references/platforms/wechat/channels.md)
+细则 → [image-text.md](references/platforms/wechat/image-text.md) ｜ [mp-article.md](references/platforms/wechat/mp-article.md) ｜ [channels.md](references/platforms/wechat/channels.md)
 
 ### 小红书（[平台包](references/platforms/xiaohongshu/PLATFORM.md)）
 
-> ⚠️ 小红书**未公开**完整素材规格文档，`social_specs.json` 里相关条目全部标了 `uncertainty`。**凡标 uncertainty 的都不是确定值**，交付时写成"以编辑器实际提示为准"。参数与来源质量见 [xiaohongshu/specs.md](references/platforms/xiaohongshu/specs.md)。
+> ⚠️ 小红书**未公开**完整素材规格文档，`social_specs.json` 里相关条目全部标了 `uncertainty` + `safeMax`。**凡标 uncertainty 的都不是确定值**：脚本只按 `safeMax` 报 WARN，交付时写成"以编辑器实际提示为准"。参数与来源质量见 [xiaohongshu/specs.md](references/platforms/xiaohongshu/specs.md)。
 
-**图文笔记**：**3:4 竖版**（推荐 1080×1440；也支持 1:1 / 4:3，但**整篇只能用一种比例**）；张数上限口径不一（多数汇总 18 张，部分 9 张）→ 推荐 6–9 张；单图 ≤20MB、JPG/PNG、**不支持 GIF**；标题 **≤20 字**（前 10–12 字是钩子）；正文 **≤1000 字**（建议 100–400，前 2–3 行是搜索抓取重点）；话题 **5–15 个**（核心/场景/长尾分层）；**首图即封面**，单独排版、关键信息压在中心安全区。
-细则 → [xiaohongshu/image-text.md](references/platforms/xiaohongshu/image-text.md)
+只列必须动手前知道的三条：
 
-**视频笔记**：**9:16 竖屏**（1080×1920）最推荐，横版素材**加黑边做竖版**；时长上限口径不一（15 分钟 vs 60 分钟）→ 30 秒–3 分钟最稳；MP4/MOV + **H.264 + AAC**；帧率 25–30；短边 ≥1080；封面**必须单独做 3:4（1080×1440）**，不要用视频首帧；标题 ≤20 字、正文 ≤1000 字、话题 5–15 个；**前 3 秒即钩子**，不要片头与问候。
-细则 → [xiaohongshu/video.md](references/platforms/xiaohongshu/video.md)
+- **整篇笔记只能用一种比例**（推荐 3:4 1080×1440）；**首图即封面**，关键信息压在中心安全区。
+- **视频封面必须单独做 3:4**，不要拿视频首帧；前 3 秒即钩子，不要片头与问候。
+- **平台红线比微信严**：严禁站外导流（微信号 / "vx" / "加我" / 二维码 / 其他平台链接）、禁用绝对化用语、禁止搬运或带其他平台水印。自检脚本会扫 `meta.json` 与 `copy.md` 的风险词，但语境要人工复核。
 
-**小红书平台红线（比微信严）**：**严禁站外导流**（微信号 / "vx" / "加我" / 二维码 / 其他平台链接）；禁用绝对化用语（"最便宜""绝对有效""100%"）；禁止搬运、带其他平台水印或白边；医疗金融效果宣称高危。自检脚本会对 `meta.json` 与 `copy.md` 做**风险词扫描**。
+细则 → [image-text.md](references/platforms/xiaohongshu/image-text.md) ｜ [video.md](references/platforms/xiaohongshu/video.md)
 
 ### 通用（[平台包](references/platforms/generic/PLATFORM.md)）
 
@@ -288,9 +297,12 @@ node <skill-dir>/tests/integration.mjs --modules <video-dir>/node_modules   # �
 SKILL=~/.workbuddy/skills/social-content-studio
 
 # 0) 先做两级路由：先选平台，再选形式，写入 plan.json（见第 0 章与 core/routing.md）
+#    写完立刻校验契约：形式是否登记、factSource/order/selection 是否自洽、「先静后动」是否被破坏
+python3 $SKILL/scripts/check_social_delivery.py --check-plan <content-dir>/plan.json
 
 # ── 产品片（generic/product-video）──
-python3 $SKILL/scripts/video-line/init_project.py --output <video-dir> --style repo --repo <repo-dir>
+# --preset 决定画幅与节奏基准：generic（默认 16:9）/ xhs-vertical（9:16）/ channels-horizontal / channels-vertical
+python3 $SKILL/scripts/video-line/init_project.py --output <video-dir> --style repo --repo <repo-dir> [--preset xhs-vertical]
 python3 $SKILL/scripts/video-line/check_environment.py --project <video-dir> --engine browser
 python3 $SKILL/scripts/video-line/sfx_landmarks.py <video-dir>/assets/sfx/*.wav
 python3 $SKILL/scripts/video-line/mix_audio.py    <video-dir>/plan.json

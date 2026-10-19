@@ -50,8 +50,8 @@
           "cardCount": {
             "min": 1,
             "recommended": [6, 9],
-            "maxMobile": 9,
-            "maxSubscriptionHelper": 20,
+            "max": 20,
+            "safeMax": 9,
             "uncertainty": "官方口径不一致：订阅号助手端 20 张、部分入口/旧版 9 张。以编辑器实际提示为准，不得编造确定值。",
             "source": "image_msg"
           },
@@ -207,7 +207,7 @@
             "min": 1,
             "recommended": [6, 9],
             "max": 18,
-            "alternateMax": 9,
+            "safeMax": 9,
             "uncertainty": "上限口径不一：多数汇总为 18 张（2024 年由 9 张扩容），部分来源仍写 9 张。以 App 编辑器实际提示为准。",
             "source": "xhs_third_party"
           },
@@ -216,7 +216,7 @@
           "topics": {
             "min": 5,
             "max": 15,
-            "alternateMax": 10,
+            "safeMax": 10,
             "uncertainty": "话题数量口径不一：5–15 个 vs 上限 10 个。以编辑器实际提示为准。",
             "source": "xhs_third_party"
           },
@@ -243,7 +243,7 @@
             "aspectRange": [0.33, 3.0],
             "recommendedAspects": ["9:16"],
             "preferred": { "width": 1080, "height": 1920, "ratio": "9:16" },
-            "durationSeconds": { "min": 1, "max": 900, "uncertainty": "时长上限口径不一（15 分钟 vs 60 分钟），以 App/网页端实际提示为准。", "source": "xhs_third_party" },
+            "durationSeconds": { "min": 1, "max": 900, "safeMax": 900, "uncertainty": "时长上限口径不一（15 分钟 vs 60 分钟），以 App/网页端实际提示为准。", "source": "xhs_third_party" },
             "maxBytes": 4294967296,
             "minResolutionHeight": 1080,
             "minResolutionHeightSoft": 720,
@@ -259,7 +259,7 @@
           },
           "title": { "maxChars": 20, "source": "xhs_third_party" },
           "body": { "maxChars": 1000, "recommended": [50, 200], "source": "xhs_third_party" },
-          "topics": { "min": 5, "max": 15, "alternateMax": 10, "source": "xhs_third_party" },
+          "topics": { "min": 5, "max": 15, "safeMax": 10, "uncertainty": "话题数量口径不一：5–15 个 vs 上限 10 个。以编辑器实际提示为准。", "source": "xhs_third_party" },
           "bannedContent": [
             { "pattern": "二维码", "why": "站外导流，易被限流/处罚" },
             { "pattern": "微信|vx|vxin|wx号|加我|私信我", "why": "站外导流（导流至微信），是小红书重点打击项" },

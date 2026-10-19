@@ -58,6 +58,31 @@ assets/platforms/<p>/
 3. 平台专属的媒体标准（编码、音量）不要写进平台节点——那属于 `shared`。平台节点只写本平台特有的值。
 4. 数值型参数必须机器可判：比例给 `ratioValue` + `ratioTolerance`，字数给 `maxChars`，体积给字节数。
 
+### 3.1 口径不一致的参数怎么写（`uncertainty` + `safeMax`）
+
+**只说「不确定」不够——脚本必须能据此降级判定。** 凡写 `uncertainty`，同时给 `safeMax`：
+
+```json
+"noteCount": {
+  "min": 1,
+  "recommended": [6, 9],
+  "max": 18,          // 官方宣称的上限
+  "safeMax": 9,       // 稳妥上限（部分入口 / 部分资料的实际上限）
+  "uncertainty": "上限口径不一：多数汇总为 18 张，部分来源仍写 9 张。以 App 编辑器实际提示为准。",
+  "source": "xhs_third_party"
+}
+```
+
+判定规则由 `judge_count()` 统一执行，不要在检查函数里手写：
+
+| 实测值 | 结果 |
+|---|---|
+| `n <= safeMax` | 正常判断（可继续比建议区间） |
+| `safeMax < n <= max` | **WARN**，附 `uncertainty` 原文 + 一条 INFO 说明口径不一 |
+| `n > max` | 按调用方给的级别（图片数量 ERROR / 话题数量 WARN） |
+
+**为什么强制 `safeMax`**：没有它，`uncertainty` 就只是注释。`tests/` 里有一项守着「凡带 uncertainty 又有 max 的节点必须有 safeMax」，漏写会直接让回归失败。
+
 ## 4. 检查函数契约
 
 在 `scripts/check_social_delivery.py` 里新增一个函数并登记：

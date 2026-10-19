@@ -2,7 +2,7 @@
 
 **一个自带全部能力的独立 skill。** 把一次内容生产按 **「先选平台，再选内容形式」** 的两级结构组织起来，覆盖微信、小红书与自有渠道，并按平台渐进扩展。
 
-- 版本：**1.0.3**
+- 版本：**1.1.0**
 - 作者：**changjiashuai**
 - 授权：**AGPL-3.0**（见 [LICENSE](LICENSE)；包内全部内容均为作者原创，无第三方组件，见 [references/THIRD-PARTY.md](references/THIRD-PARTY.md)）
 - 基线：**`references/BASELINE.md`**（能力清单 + 校验命令 + 基线指纹 + 扩展契约）
@@ -26,6 +26,8 @@
 | 起步工程 + 默认样式 + 手法样例 + 配乐示例 + 11 个原创音效 | `generic/product-video` | `assets/platforms/generic/` |
 | 跨平台口径一致性与素材复用 | — | `references/core/cross-platform.md` |
 | 规格机器校验（尺寸 / 比例 / 字数 / 体积 / 禁用项 / 风险词） | — | `scripts/check_social_delivery.py` + `scripts/social_specs.json` |
+| **`plan.json` 契约校验**（形式登记 / 事实源 / 执行顺序 / 先静后动） | — | `check_social_delivery.py --check-plan` |
+| **投放预设**（竖版 9:16 / 横版 6:7 封面的画幅与首帧要求） | `generic/product-video` | `video-line/init_project.py --preset` |
 | 模板画布尺寸探测 + 离线回归 + 集成回归 | — | `scripts/render_social_assets.mjs --probe` + `tests/` |
 | 平台接入契约（渐进扩展） | — | `references/core/platform-schema.md` |
 
@@ -33,7 +35,7 @@
 
 ## 2. 怎么触发
 
-说"用社交内容工坊做一份内容"，或直接用触发词：微信图文、小绿书、公众号文章、公众号排版、视频号、小红书图文、小红书笔记、小红书视频、多平台分发、产品宣传片、版本更新片、changelog。
+说"用社交内容工坊做一份内容"，或直接用触发词：微信图文、小绿书、公众号文章、公众号排版、视频号、小红书图文、小红书笔记、小红书视频、多平台分发、产品宣传片、版本更新片、changelog、social content、product promo。
 
 **它做的第一件事一定是问你两次**（都可多选）：
 
@@ -159,6 +161,7 @@ python3 -m unittest discover -s $SKILL/tests
 
 | 版本 | 说明 |
 |---|---|
+| **v1.1.0** | **把文档纪律变成机器守卫**（能力面不变，不新增平台）。`--check-plan` 校验 `plan.json` 契约；`uncertainty` 升级为 `max` + `safeMax` + 原文的可执行约定，落在稳妥与官方之间报 WARN；`init_project.py --preset` 提供 `generic` / `xhs-vertical` / `channels-horizontal` / `channels-vertical`；ffprobe 失败不再静默；新增 GitHub Actions 回归；SKILL.md 平台要点改为指向 `specs.md` 单一事实源。回归测试 73 → 98 项。 |
 | **v1.0.3** | **补充第三方名称的使用说明**：`references/THIRD-PARTY.md` 新增 §2.3，逐类列出包内出现的第三方名称（案例对象 / 外部运行时依赖 / 素材来源标注 / 本机他 skill 名）及其性质，说明它们属**叙述性使用**、不是随包分发的第三方组件，并写明案例复盘保留产品实名的理由。**案例对象名一处未动**，仅新增说明。同版修正 `product-video/audio-and-qa.md` 内置音效目录的链接为包内相对路径（原写法为包根相对路径，在按文件位置解析的渲染器下会断链）。 |
 | **v1.0.2** | **起步工程改为完全原创**：`assets/platforms/generic/starter/` 的 29 个文件（运行时 `engine.js` / `film-store.js` / `client.jsx` / `film.jsx`、`kit/` 四件、`shots/` 两件、`presentations.jsx`、`product-context.jsx`、`fixtures/api.js`、`film.css`、六个工程脚本、`integration.config.mjs`、`package.json`、`adapters/` 四件）按同一对外契约重新实现。该目录由第三方代码改为本包原创，**包内自此没有任何第三方组件**；`NOTICE.md` 的版权行改为 changjiashuai。对外契约（文件名、导出名、DOM 契约、CLI 参数、`window.*` API）全部保持不变，既有影片工程无需改动。 |
 | **v1.0.1** | **默认样式改为完全原创**：`fallback/` 的 `tokens.css` 与 `primitives.jsx` 重写为「纸墨」样式（纸白 / 墨黑双色调，纸面 + 纸叠结构，新增 `ghost` 按钮与 `accent` 徽标变体），随包两张预览图按新样式重新渲染。该目录由第三方 BSL 1.1 组件改为本包原创 AGPL-3.0，**包内自此没有任何限制商业使用的组件**。对外契约（类名、`--film-*` 变量名、四个组件导出名）保持不变，既有影片工程无需改动。 |

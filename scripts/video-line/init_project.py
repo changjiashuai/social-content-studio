@@ -5,13 +5,56 @@ import json
 import shutil
 from pathlib import Path
 
+# 投放预设：同一个起步工程，按目标渠道改画幅 / 时长 / 节奏基准。
+# 差异来自 references/platforms/{xiaohongshu/video.md, wechat/channels.md}：
+# 小红书视频 9:16、前 3 秒即钩子、30s–3min 最稳；视频号横竖皆可但第 1 帧即默认封面。
+PRESETS = {
+    'generic': {
+        'width': 1920, 'height': 1080, 'duration': 10,
+        'label': '通用（自有渠道）',
+        'notes': ['横版 16:9 为默认起点，画幅可按渠道自定。'],
+    },
+    'xhs-vertical': {
+        'width': 1080, 'height': 1920, 'duration': 10,
+        'label': '小红书视频笔记',
+        'notes': [
+            '9:16 竖屏；横版素材加黑边做竖版，不要留白边。',
+            '前 3 秒即钩子：第 1 个镜头就要给出具体利益点，不要片头、问候或空镜。',
+            '封面必须单独做 3:4（1080×1440），不要用视频首帧。',
+            '30 秒–3 分钟最稳；时长上限口径不一，以 App 实际提示为准。',
+        ],
+    },
+    'channels-horizontal': {
+        'width': 1920, 'height': 1080, 'duration': 10,
+        'label': '视频号（横版）',
+        'notes': [
+            '横版 16:9；宽高比允许 0.33–3.0。',
+            '第 1 帧即默认封面，必须是完整画面（check_delivery.py 会测前 5 帧）。',
+            '横版封面在主页会被裁成 6:7 —— 要单独确认裁切后主体仍完整。',
+            '短标题 ≤16 字会进搜索场景，必须单独打磨。',
+        ],
+    },
+    'channels-vertical': {
+        'width': 1080, 'height': 1920, 'duration': 10,
+        'label': '视频号（竖版）',
+        'notes': [
+            '9:16 竖版；封面 1080×1260（6:7），横版封面在主页会被裁成 6:7。',
+            '第 1 帧即默认封面，必须是完整画面。',
+            '短标题 ≤16 字会进搜索场景，必须单独打磨。',
+        ],
+    },
+}
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', required=True, type=Path)
     parser.add_argument('--style', required=True, choices=['repo', 'default', 'hybrid'])
     parser.add_argument('--repo', type=Path)
+    parser.add_argument('--preset', default='generic', choices=sorted(PRESETS),
+                        help='投放预设：决定画幅、时长基准与首帧/钩子要求（默认 generic 横版 16:9）')
     args = parser.parse_args()
+    preset = PRESETS[args.preset]
     repo = args.repo.expanduser().resolve() if args.repo else None
     target = args.output.expanduser().resolve()
     if args.style in ('repo', 'hybrid') and (repo is None or not repo.is_dir()):
@@ -54,7 +97,9 @@ export function FeatureVisual() {
         shot.setdefault('component', None)
     shots[1]['actions'].append({'id':'component-appear','at':0.45,'action':'controls appear','soundRequired':True})
     shots[2]['actions'][0]['soundRequired']=True
-    plan = {'demo':True,'product':'软件更新 · 技术样片','style':args.style,'width':1920,'height':1080,'fps':30,'duration':10,
+    plan = {'demo':True,'product':'软件更新 · 技术样片','style':args.style,
+            'preset':args.preset,
+            'width':preset['width'],'height':preset['height'],'fps':30,'duration':preset['duration'],
             'repo':str(repo) if repo else None,'audioRequired':True,'sfxRequired':True,
             'typography':{'mode':'bilingual','zhFont':'PingFang SC / Noto Sans CJK SC','enFont':'Georgia','zhStyle':'sans-serif'},
             'audio':{'ducking':{'enabled':True},'music':{'file':'assets/music.wav','gain':0.65},'cues':[
@@ -66,13 +111,18 @@ export function FeatureVisual() {
 
 - 状态：技术起步，尚未完成产品调研与分镜。
 - 风格选择：{args.style}（应来自用户已确认的选择）
+- 投放预设：{preset['label']}（`{args.preset}`，画幅 {preset['width']}×{preset['height']}、时长基准 {preset['duration']}s）
 - 仓库：{repo or '未指定，制作真实产品内容前补充'}
 - 产品 / 更新范围 / 发布状态：待从用户输入和仓库确定。
-- 平台 / 画幅 / 时长 / 语言：待记录；plan.json 当前仅为 10 秒技术样片。
+- 平台 / 画幅 / 时长 / 语言：待记录；plan.json 当前仅为 {preset['duration']} 秒技术样片。
 - 品牌资源 / 字体：待审计。
 - 是否允许链接 / CTA：待记录用户要求。
 - 声音：音乐默认用代码原创；音效先找适合本片的素材，缺项才用 skill 内置 WAV。技术样片尚未配音轨；plan 已分别列出配乐和关键动作音效，须实际准备并混入。
 - 卖点证据、风格审计与素材来源：记录在 evidence/。
+
+### 本预设的硬要求
+
+{chr(10).join('- ' + n for n in preset['notes'])}
 
 保留原有用户决定；没有确认的字段不要伪装成已确认。正式成片完成后同步 plan.json 与实际时间线。
 """)
