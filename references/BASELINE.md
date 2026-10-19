@@ -1,6 +1,6 @@
 # 基线 BASELINE
 
-本文件是 `social-content-studio` **v1.5.0 的基线快照**：把"已经跑通的能力"在平台化结构中固定下来，
+本文件是 `social-content-studio` **v1.6.0 的基线快照**：把"已经跑通的能力"在平台化结构中固定下来，
 明确哪些是共用底座、哪些是平台专属、规格版本是什么、怎么校验。
 **后续每新增一个平台，都在此基线上叠加；基线本身只增不改。**
 
@@ -16,7 +16,7 @@
 
 ---
 
-## 2. 基线组成（v1.5.0，本版冻结）
+## 2. 基线组成（v1.6.0，本版冻结）
 
 | 层 | 位置 | 内容 | 说明 |
 |---|---|---|---|
@@ -57,12 +57,13 @@
 
 | 平台 | 形式 | 自检函数 |
 |---|---|---|
-| 通用 | `generic/motion-film` | `check_generic_product_video`（兜底结构检查）+ `video-line/check_delivery.py`（强检查） |
+| 通用 | `generic/motion-film` | `check_generic_motion_film`（兜底结构检查）+ `video-line/check_delivery.py`（强检查） |
 | 微信 | `wechat/image-text` | `check_wechat_image_text` |
 | 微信 | `wechat/mp-article` | `check_wechat_mp_article` |
 | 微信 | `wechat/channels` | `check_wechat_channels` |
 | 小红书 | `xiaohongshu/image-text` | `check_xhs_image_text` |
 | 小红书 | `xiaohongshu/video` | `check_xhs_video` |
+| X | `x/article` | `check_x_article` |
 
 ### 3.2.1 契约与纪律的机器化（v1.1.0 新增）
 
@@ -107,7 +108,7 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 
 ---
 
-## 4. 基线指纹（v1.5.0）
+## 4. 基线指纹（v1.6.0）
 
 用于核对基线是否被改动。完整 SHA-256 可用 `shasum -a 256 <file>` 复算（下表取前 16 位）。
 二进制资产（音效 WAV、预览 PNG）、`LICENSE` 与 `BASELINE.md` 自身不入表（自身无法自洽）。
@@ -117,8 +118,8 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 | 文件 | SHA-256 前 16 位 |
 |---|---|
 | `.gitignore` | `6e0cb83e04db8cd4` |
-| `README.md` | `c2b0a7cb1bdac0cc` |
-| `SKILL.md` | `0ed9b717b404e81b` |
+| `README.md` | `53fd6d479ec9fa52` |
+| `SKILL.md` | `dd1af9cb1135b199` |
 | `agents/openai.yaml` | `ecbfa04409b23ee2` |
 | `.github/workflows/regression.yml` | `99cf617225cb1ab7` |
 
@@ -135,7 +136,7 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 | `references/core/cross-platform.md` | `c41bc2b3187c2105` |
 | `references/core/pipeline.md` | `05ab7a24b42afd5a` |
 | `references/core/platform-schema.md` | `081d8bf5bfe26889` |
-| `references/core/routing.md` | `f8371fa5dd4ea2d3` |
+| `references/core/routing.md` | `34509ea35c0b6e6b` |
 
 ### 4.4 平台包 · 微信
 
@@ -154,6 +155,9 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 | `references/platforms/xiaohongshu/PLATFORM.md` | `492b52a073ced4fc` |
 | `references/platforms/xiaohongshu/image-text.md` | `aa1512be5aca90e8` |
 | `references/platforms/xiaohongshu/specs.md` | `78396ca6430be1c6` |
+| `references/platforms/x/PLATFORM.md` | `5ea9be2f4ae79f6d` |
+| `references/platforms/x/specs.md` | `15772ee1bdda7c85` |
+| `references/platforms/x/article.md` | `a285bf820871d527` |
 | `references/platforms/xiaohongshu/video.md` | `503b6b518ec2f991` |
 
 ### 4.6 平台包 · 通用（影片）
@@ -187,9 +191,9 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 
 | 文件 | SHA-256 前 16 位 |
 |---|---|
-| `scripts/check_social_delivery.py` | `34cbae495f20a96d` |
+| `scripts/check_social_delivery.py` | `f63fbdaf119c55b6` |
 | `scripts/render_social_assets.mjs` | `93c51823b86a0ddd` |
-| `scripts/social_specs.json` | `0881ece6fc56a716` |
+| `scripts/social_specs.json` | `bc245c26b603c68b` |
 
 ### 4.8 影片脚本
 
@@ -207,7 +211,7 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 | 文件 | SHA-256 前 16 位 |
 |---|---|
 | `tests/integration.mjs` | `f717acf428b04b08` |
-| `tests/test_check_social_delivery.py` | `c87001ab1b93f4aa` |
+| `tests/test_check_social_delivery.py` | `fe75e1af1a8bfe57` |
 | `tests/test_video_line_regressions.py` | `ee0333c604ee4036` |
 
 ### 4.10 平台模板 · 微信
@@ -333,6 +337,7 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 
 | 版本 | 说明 |
 |---|---|
+| **v1.6.0** | **新增 X 平台包（`x/article`）。** ①`references/platforms/x/`：`PLATFORM.md` 区分「长帖（约 2.5 万字符、无分节）」与「Article（约 10 万字符、有标题与分节）」并给平台红线；`specs.md` 逐条带来源分级（`x_official` / `x_third_party` / `practice`）；`article.md` 给流程、首段即摘要、格式使用纪律与 `meta.json` 契约。②`social_specs.json` 新增 `platforms.x.forms.article`，正文上限标 `uncertainty` + `safeMax` 75000（10 万字符仅第三方汇总，X 未公开固定数字）。③新增 `check_x_article`：正文/标题/首段字数、封面 16:9、分节数量、配图体积与格式、风险词；正文插图不套封面比例。④修复 `uncertain_max` 只认 `max` 不认 `maxChars` 的问题（字数规格带 uncertainty 时会抛 TypeError）；风险词扫描补上 `intro` / `digest` / `shortTitle`。⑤路由与 SKILL.md 登记第 4 个平台；`x/article` 归入静态形式。回归测试 137 → 153 项。 |
 | **v1.5.0** | **补上配音能力，并明确禁用系统机器音。** ①新增 `motion-film/voiceover.md`：优先级链为用户提供 → **edge-tts** → 其他免费 TTS → **停下来问用户**；按片子气质选音色（性格→性别/语速/音高的映射表）并把理由写进 `plan.json.voiceover`；`say` / SAPI / eSpeak 一律禁用，**没有配音优于机器音**。②新增 `scripts/video-line/make_voiceover.py`：`--doctor` 体检、`--list-voices` 列音色、按 plan 逐幕生成配音与 SRT；edge-tts 输出为 24kHz mp3，自动转 48kHz 单声道 PCM wav；缺 edge-tts 时退出码 3（要求用户决定），**不降级**。③`check_environment.py` 增加 TTS 探测与禁用引擎识别，写入 `details.tts`，**不阻塞渲染**。④`pipeline-notes.md` 第 11 条由 `say` 用法改为 edge-tts 的正确用法与参数上限。⑤`SKILL.md` 第 6 步改为「配音、配乐与音效」。分册 18 → 19，脚本 6 → 7，回归测试 131 → 137 项。 |
 | **v1.4.0** | **影片形式通用化：片型由内容决定，不再一律做成产品片。** ①形式 `generic/product-video` → `generic/motion-film`，目录 `references/platforms/generic/product-video/` → `motion-film/`；**旧 ID 不再兼容**（`LEGACY_ALIAS` 已移除，旧 plan.json 会报错）。②新增 `filmKind`（`product` / `evidence` / `explainer` / `story`）：`check_delivery.py` 按片型分派必备项——`product` 要求功能主张与原组件，`evidence`/`explainer` 要求 FACTS 或 RESEARCH，`story` 不要求主张但建议 `fictionNote`。③**不声明 `filmKind` 等于 `product`**，默认严格度与 v1.3.0 完全一致；任何片型都不许假造界面。④SKILL.md、routing、specs、README 同步改为「影片 + 片型」表述。回归测试 122 → 131 项。 |
 | **v1.3.0** | **补上「只有网址」这一条最常见路径。** ①新增 `motion-film/web-first.md`：A/B/C 三级证据源（仓库 / 素材 / 网址），每级能做什么、不能做什么；公开来源清单（官网、文档、changelog、定价、公开仓库、数据集）与内容挖掘三层；三条硬线——只用公开可引用内容、不用泄露与付费墙内容、**不假造界面**。②新增 `motion-film/research-brief.md`：`RESEARCH.md` 契约（四问 + 证据级别与边界 + 与 FACTS/推导的关系），B/C 级必写。③`direction.md` §2 增加「证据级别 → 允许的信息形状」约束（C 级不能做 Workflow）。④`repo-and-style.md` 与 `component-pipeline.md` 开头加分流，避免只有网址时硬套仓库流程。⑤`check_delivery.py` 新增 `evidenceLevel` 解析与 `research_checks`：B/C 级缺 `RESEARCH.md` 报 error；功能镜头的原组件要求在非 repo 级别降级为 warning（**降级不等于放开伪造**）。⑥分册 15 → 18。回归测试 116 → 122 项。 |

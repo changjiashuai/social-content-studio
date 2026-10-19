@@ -1,6 +1,6 @@
 ---
 name: social-content-studio
-version: 1.5.0
+version: 1.6.0
 author: changjiashuai
 license: "AGPL-3.0（见 LICENSE 与 references/THIRD-PARTY.md）"
 description: "社交内容工坊：两级路由驱动的多平台多形式内容生产。先选平台（微信 / 小红书 / 通用），再选该平台的内容形式。微信支持图文（图片消息 / 小绿书）、公众号长文、视频号视频；小红书支持图文笔记、视频笔记；通用承载代码驱动的产品宣传片与版本更新片。产出前强制先问平台再问形式（均支持多选），再进对应流水线；多选时按「事实源 → 静态切片 → 动态切片」串行执行以保证口径一致。通用平台自带完整制作体系：19 个方法论分册 + 6 个工程脚本 + 起步工程 + 默认样式 + 手法样例 + 原创音效，全部原生内置，无外部 skill 依赖。触发词：微信图文、小绿书、公众号文章、公众号排版、视频号、小红书图文、小红书笔记、小红书视频、多平台分发、产品宣传片、版本更新片、changelog、social content、product promo。"
@@ -28,12 +28,14 @@ description: "社交内容工坊：两级路由驱动的多平台多形式内容
 | 1 | `wechat` | `1 微信` | 图文（图片消息 / 小绿书）、公众号长文、视频号视频 |
 | 2 | `xiaohongshu` | `2 小红书` | 图文笔记、视频笔记 |
 | 3 | `generic` | `3 通用（自有渠道）` | 产品宣传片 / 版本更新片（可发官网、社群、其他渠道） |
+| 4 | `x` | `4 X（Twitter）` | 文章（长文） |
 
 **第二级 · 内容形式（对每个已选平台各选一次，均可多选）**
 
 - **微信** → `1 图文（图片+文案）` / `2 公众号（长文）` / `3 视频号（视频）`
 - **小红书** → `1 图文笔记` / `2 视频笔记`
 - **通用** → `1 影片（片型由内容定：产品片 / 科普 / 数据 / 叙事）`
+- **X** → `1 文章（长文）`
 
 **多选时的执行顺序**：先定**事实源**（承载最完整论证与数据出处的那个形式），再做其余**静态形式**，最后做**动态形式** —— 即「事实源 → 图文切片 → 视频切片」。
 事实源判定规则、追问话术、边界情况与 `plan.json` 契约见 [两级内容路由](references/core/routing.md)。
@@ -73,29 +75,33 @@ social-content-studio/
 │       │   ├── specs.md            # 小红书规格总表（含来源质量提示与平台红线）
 │       │   ├── image-text.md       # 图文笔记
 │       │   └── video.md            # 视频笔记
-│       └── generic/
-│           ├── PLATFORM.md         # 平台入口 + 分册索引 + 工程与资产 + 红线
-│           ├── specs.md            # 兜底规格 + 两层自检覆盖范围
-│           └── motion-film/      # ── 影片 18 个分册（细则）──
-│               ├── direction.md            影片方向（定标杆 → 推导 → 固化 → 镜头表）
-│               ├── web-first.md            网址优先（只有官网时怎么调查；三级证据源）
-│               ├── research-brief.md       调研摘要（RESEARCH.md 契约，B/C 级必写）
-│               ├── style-derivation.md     风格推导（信息形状 → 运动语言 → 滑块 → 不变量与禁令）
-│               ├── rhythm-brief.md         节奏单（路线 / 能量曲线 / 密度 / 死时间）
-│               ├── story-and-copy.md       分镜、文案与节奏
-│               ├── visual-vocabulary.md    视觉手法词汇
-│               ├── component-pipeline.md   真实组件到可渲染画面
-│               ├── starter.md              起步工程运行时结构
-│               ├── repo-and-style.md       仓库与风格审计
-│               ├── onboarding.md           依赖安装（仅缺项时读）
-│               ├── voiceover.md            配音（edge-tts 优先、按气质选音色、禁用系统机器音）
-│               ├── audio-sourcing.md       配乐与音效来源、编曲与对位
-│               ├── audio-and-qa.md         声音与成片检查
-│               ├── review.md               审片（含独立审片与反馈定位）
-│               ├── cover.md                封面 3:4 / 4:3 / 16:9
-│               ├── case-study.md           案例复盘
-│               ├── provenance.md           内部溯源（FACTS 底账，不随片交付）
-│               └── pipeline-notes.md       本机实测管线与环境坑 28 条
+│       ├── generic/
+│       │   ├── PLATFORM.md         # 平台入口 + 分册索引 + 工程与资产 + 红线
+│       │   ├── specs.md            # 兜底规格 + 片型 + 两层自检覆盖范围
+│       │   └── motion-film/        # ── 影片 19 个分册（细则）──
+│       │       ├── direction.md            影片方向（定标杆 → 推导 → 固化 → 镜头表）
+│       │       ├── web-first.md            网址优先（只有官网时怎么调查；三级证据源）
+│       │       ├── research-brief.md       调研摘要（RESEARCH.md 契约，B/C 级必写）
+│       │       ├── style-derivation.md     风格推导（信息形状 → 运动语言 → 滑块 → 不变量与禁令）
+│       │       ├── rhythm-brief.md         节奏单（路线 / 能量曲线 / 密度 / 死时间）
+│       │       ├── story-and-copy.md       分镜、文案与节奏
+│       │       ├── visual-vocabulary.md    视觉手法词汇
+│       │       ├── component-pipeline.md   真实组件到可渲染画面
+│       │       ├── starter.md              起步工程运行时结构
+│       │       ├── repo-and-style.md       仓库与风格审计
+│       │       ├── onboarding.md           依赖安装（仅缺项时读）
+│       │       ├── voiceover.md            配音（edge-tts 优先、按气质选音色、禁用系统机器音）
+│       │       ├── audio-sourcing.md       配乐与音效来源、编曲与对位
+│       │       ├── audio-and-qa.md         声音与成片检查
+│       │       ├── review.md               审片（含独立审片与反馈定位）
+│       │       ├── cover.md                封面 3:4 / 4:3 / 16:9
+│       │       ├── case-study.md           案例复盘
+│       │       ├── provenance.md           内部溯源（FACTS 底账，不随片交付）
+│       │       └── pipeline-notes.md       本机实测管线与环境坑 28 条
+│       └── x/
+│           ├── PLATFORM.md         # 平台入口：长帖 vs Article 的分界 + 红线
+│           ├── specs.md            # X 规格总表（Article 长度/标题/封面/内容能力，含来源质量）
+│           └── article.md          # X 文章（长文）
 ├── assets/
 │   └── platforms/
 │       ├── wechat/
@@ -148,6 +154,7 @@ social-content-studio/
 | 小红书 | `xiaohongshu/image-text` | `export/xiaohongshu/image-text/` | [xiaohongshu/specs.md](references/platforms/xiaohongshu/specs.md) §1 |
 | 小红书 | `xiaohongshu/video` | `export/xiaohongshu/video/` | 同上 §2 |
 | 通用 | `generic/motion-film` | `export/generic/motion-film/` | [generic/specs.md](references/platforms/generic/specs.md)（兜底）+ 下方总纲与分册 |
+| X | `x/article` | `export/x/article/` | [x/specs.md](references/platforms/x/specs.md) §1 |
 
 ---
 
@@ -301,6 +308,20 @@ node <skill-dir>/tests/integration.mjs --modules <video-dir>/node_modules   # �
 
 自检分两层：影片有**自带的结构与媒体自检**（`scripts/video-line/check_delivery.py`，按片型分派：方向文件、主张/溯源、时间线、媒体参数、节奏、首帧）；平台线自检 `check_social_delivery.py` 只做兜底（文件存在、可探测、时长 >0）。**两层都不能替代人工审片**——覆盖范围与「它不证明什么」逐条写在 [generic/specs.md](references/platforms/generic/specs.md) §3。
 
+### X（[平台包](references/platforms/x/PLATFORM.md)）
+
+形式 `x/article`：长篇公开写作。**只做 Article**；「一条说清」的长帖（约 2.5 万字符、无标题无分节）不属于本形式，判据是**有没有结构**，不是字数。
+
+动手前必须知道的三条：
+
+- **需要注意付费订阅**（Premium 级，非 Premium+）。没有权限就无法发布，先确认。
+- **入口即点击**：Article 不在时间线内展开，用户先看到标题 + 封面 + 第一段 → **第一段同时是摘要**，必须 2–3 句说清，不放「最近很多人问我」这类铺垫。
+- **长度上限口径不一**：约 10 万字符来自第三方汇总，X 未在公开帮助页给出固定数字 → 脚本按稳妥上限 75,000 字符判 WARN，交付时写「以编辑器实际计数为准」。
+
+格式支持标题、粗体、列表、图片、视频、嵌入帖子，但**支持不等于都用**：粗体全文 ≤10 处，列表只用于步骤与并列项（讲不了因果）。
+
+细则 → [article.md](references/platforms/x/article.md) ｜ 规格与来源 → [x/specs.md](references/platforms/x/specs.md)
+
 ---
 
 ## 跨平台硬约束
@@ -368,6 +389,7 @@ node    $SKILL/tests/integration.mjs --modules <video-dir>/node_modules # 可选
 - [通用平台包](references/platforms/generic/PLATFORM.md)：影片分册索引、片型、工程与资产、红线、两层自检。
 - [微信规格总表](references/platforms/wechat/specs.md)：三类内容的硬参数 + 官方来源链接 + HTML/CSS 白名单。
 - [小红书规格总表](references/platforms/xiaohongshu/specs.md)：两类形式的硬参数 + 来源质量提示 + 平台红线 + 与微信的对照表。
+- [X 规格总表](references/platforms/x/specs.md)：Article 长度/标题/封面/内容能力 + 来源质量分级；[X 文章分册](references/platforms/x/article.md) 讲流程与写作要点。
 - `assets/platforms/`：六套可直接改的模板（微信图卡 / 正文片段 / 头条封面 / 次条封面 / 视频号封面 / 小红书图集页 / 小红书视频封面）+ 影片的起步工程、默认样式、手法样例与音频资产。
 - [来源与授权范围](references/THIRD-PARTY.md)：本包授权、平台规则引用质量、素材版权约束。
 - [LICENSE](LICENSE) 是本包自身的完整授权声明。

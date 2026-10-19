@@ -1079,5 +1079,156 @@ class TestStyleDerivation(Base):
         self.assertNotIn("styleDerivation", out)
 
 
+# ───────────────────────────────────── X 平台 · Article
+
+class TestXArticle(Base):
+    FORM = "x/article"
+    SUB = "x/article"
+
+    def make_article(self, title="一份可核对的复盘", intro=None, body=None,
+                     sections=None, cover=True, meta_extra=None):
+        d = os.path.join(self.export, self.SUB)
+        os.makedirs(d, exist_ok=True)
+        body = body if body is not None else (
+            "# 标题\n\n第一段说清结论。\n\n## 为什么\n\n内容。\n\n## 怎么做\n\n内容。\n\n## 结果\n\n内容。\n")
+        write_text(os.path.join(d, "article.md"), body)
+        if cover:
+            write_png(os.path.join(d, "cover-169.png"), 1200, 675)
+        meta = {
+            "form": "x/article",
+            "title": title,
+            "intro": intro if intro is not None else "这次重构让冷启动从 4.2 秒降到 0.8 秒。",
+            "bodyChars": len(body),
+            "sections": sections if sections is not None else ["为什么", "怎么做", "结果"],
+            "images": 0,
+        }
+        if meta_extra:
+            meta.update(meta_extra)
+        write_json(os.path.join(d, "meta.json"), meta)
+
+    def test_clean_article_passes(self):
+        self.make_article()
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("1200x675 比例符合 16:9", out)
+
+    def test_cover_wrong_ratio_is_error(self):
+        d = os.path.join(self.export, self.SUB)
+        os.makedirs(d, exist_ok=True)
+        write_png(os.path.join(d, "cover-169.png"), 1080, 1440)   # 竖版被当成封面
+        write_text(os.path.join(d, "article.md"), "# t\n\n## a\n\n## b\n")
+        write_json(os.path.join(d, "meta.json"), {"title": "t", "intro": "i", "bodyChars": 10})
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 1, out)
+        self.assertIn("比例", out)
+
+    def test_missing_cover_warns_not_error(self):
+        self.make_article(cover=False)
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("没有 cover 开头的封面图", out)
+
+    def test_body_over_safe_max_warns(self):
+        """正文超过稳妥上限 75000 时按「口径不一」报 WARN，而不是直接 ERROR。"""
+        self.make_article(meta_extra={"body": "字" * 80000})
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("稳妥上限", out)
+
+    def test_body_over_hard_max_is_error(self):
+        self.make_article(body="字" * 100001)
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 1, out)
+        self.assertIn("超过上限 100000", out)
+
+    def test_title_over_limit_is_error(self):
+        self.make_article(title="字" * 201)
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 1, out)
+        self.assertIn("标题 超限", out)
+
+    def test_missing_intro_warns(self):
+        self.make_article()
+        d = os.path.join(self.export, self.SUB, "meta.json")
+        with open(d, encoding="utf-8") as fh:
+            m = json.load(fh)
+        m.pop("intro", None)
+        write_json(d, m)
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("首段", out)
+
+    def test_too_few_sections_warns(self):
+        """只有 0–1 个二级标题时提示结构过平。"""
+        self.make_article(body="# 只有标题\n\n没有分节。\n", sections=[])
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("分节", out)
+
+    def test_missing_body_file_is_error(self):
+        d = os.path.join(self.export, self.SUB)
+        os.makedirs(d, exist_ok=True)
+        write_json(os.path.join(d, "meta.json"), {"title": "t", "intro": "i", "bodyChars": 1})
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 1, out)
+        self.assertIn("找不到正文文件", out)
+
+    def test_missing_dir_is_error(self):
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 1, out)
+        self.assertIn("缺少产出目录", out)
+
+    def test_body_image_is_not_forced_to_cover_ratio(self):
+        """正文插图允许自由比例，不应套封面的 16:9。"""
+        self.make_article()
+        write_png(os.path.join(self.export, self.SUB, "fig-01.png"), 1200, 700)
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 0, out)
+        self.assertNotIn("fig-01.png 比例", out)
+        self.assertIn("fig-01.png", out)
+
+    def test_offsite_funnel_is_warned(self):
+        self.make_article(intro="想了解更多请私信我。")
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("导流", out)
+
+    def test_uncertain_max_reads_maxChars(self):
+        """字数规格用 maxChars，uncertain_max 必须能读到，不能返回 None。"""
+        import sys as _sys
+        _sys.path.insert(0, os.path.join(SKILL_DIR, "scripts"))
+        import check_social_delivery as m
+        soft, hard, u = m.uncertain_max({"maxChars": 1000, "safeMax": 800, "uncertainty": "口径不一"})
+        self.assertEqual((soft, hard), (800, 1000))
+        self.assertIsNotNone(u)
+
+
+class TestXRegistry(Base):
+    def test_x_article_is_listed(self):
+        rc, out = self.run_check() if False else (None, None)
+        proc = subprocess.run([PY, SCRIPT, "--list"], capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0)
+        self.assertIn("x/article", proc.stdout)
+        self.assertIn("X（Twitter）", proc.stdout)
+
+    def test_x_article_specs_printable(self):
+        proc = subprocess.run([PY, SCRIPT, "--print-specs", "--form", "x/article"],
+                              capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("100000", proc.stdout)
+
+    def test_x_article_counts_as_static_form(self):
+        """x/article 是静态形式，多平台时不应排在视频之后。"""
+        path = os.path.join(tempfile.mkdtemp(), "plan.json")
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump({"selection": {"wechat": ["channels"], "x": ["article"]},
+                       "factSource": "x/article",
+                       "order": ["x/article", "wechat/channels"],
+                       "audience": "technical"}, fh)
+        proc = subprocess.run([PY, SCRIPT, "--check-plan", path], capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0, proc.stdout)
+        self.assertIn("静态形式全部在动态形式之前", proc.stdout)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

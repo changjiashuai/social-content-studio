@@ -407,13 +407,20 @@ def uncertain_of(tspec: dict) -> dict | None:
 def uncertain_max(tspec: dict) -> tuple:
     """把「上限」拆成 (soft, hard, uncertainty)。
 
-    - 无 uncertainty：soft == hard == tspec["max"]，没有灰区。
-    - 有 uncertainty 且有 safeMax：hard = max（官方宣称上限），soft = safeMax（稳妥上限）。
+    上限的字段名在不同规格里不同：数量类是 `max`，字数是 `maxChars`。两者都认，
+    否则字数规格一旦带 uncertainty 就会读到 None 并抛 TypeError。
+
+    - 无 uncertainty：soft == hard == 上限，没有灰区。
+    - 有 uncertainty 且有 safeMax：hard = 官方宣称上限，soft = safeMax（稳妥上限）。
       落在 (soft, hard] 属于「官方口径不一」的灰区 —— 报 WARN 并附原文，不报 ERROR。
-    - 有 uncertainty 但没 safeMax：soft == hard == max，只把原文当 INFO 附上。
+    - 有 uncertainty 但没 safeMax：soft == hard，只把原文当 INFO 附上。
     """
     u = uncertain_of(tspec)
     hard = tspec.get("max")
+    if hard is None:
+        hard = tspec.get("maxChars")
+    if hard is None:
+        return None, None, u
     if u is None:
         return hard, hard, None
     soft = u["safe"] if u["safe"] is not None else hard
@@ -561,7 +568,8 @@ def collect_banned_texts(export_dir: str, meta: dict | None) -> list[tuple[str, 
     texts = []
     if isinstance(meta, dict):
         for key, label in (("title", "meta.title"), ("body", "meta.body"),
-                           ("description", "meta.description")):
+                           ("description", "meta.description"), ("intro", "meta.intro"),
+                           ("digest", "meta.digest"), ("shortTitle", "meta.shortTitle")):
             v = meta.get(key)
             if isinstance(v, str) and v.strip():
                 texts.append((label, v))
@@ -1049,6 +1057,111 @@ def _check_topics(rep: Report, ch: str, topics, tspec: dict):
         rep.add(ch, "话题标签", OK, f"话题 {n} 个，落在建议区间 {lo}–{hi}")
 
 
+# ------------------------------------------------------------- X 平台
+
+def check_x_article(specs: dict, export_root: str, rep: Report):
+    """x/article —— 长文：正文/标题/首段字数、封面 16:9、分节结构、风险词。"""
+    spec = form_spec(specs, "x/article")
+    ch = spec["id"]
+    d = os.path.join(export_root, spec["exportPath"])
+    if not os.path.isdir(d):
+        rep.add(ch, "目录", ERROR, f"缺少产出目录 {d}")
+        return
+
+    body_files = [os.path.join(d, n) for n in sorted(os.listdir(d))
+                  if n.lower().endswith((".md", ".txt"))]
+    if not body_files:
+        rep.add(ch, "正文", ERROR, "找不到正文文件（article.md）")
+    else:
+        rep.checked_files += 1
+        name = os.path.basename(body_files[0])
+        try:
+            with open(body_files[0], "r", encoding="utf-8", errors="replace") as fh:
+                text = fh.read()
+        except OSError as exc:
+            text = ""
+            rep.add(ch, "正文", ERROR, f"{name} 读取失败：{exc}")
+        if text:
+            n = len(text)
+            soft, hard, u = uncertain_max(spec["body"])
+            if n > hard:
+                rep.add(ch, "正文长度", ERROR, f"共 {n} 字符，超过上限 {hard} 字符", n, hard)
+            elif n > soft:
+                rep.add(ch, "正文长度", WARN,
+                        f"共 {n} 字符：上限 {hard} 字符，但稳妥口径只到 {soft} 字符 —— 以编辑器实际计数为准",
+                        n, f"≤{soft}字符（稳妥口径）")
+            else:
+                rep.add(ch, "正文长度", OK, f"正文 {n} 字符（上限 {hard}）")
+            report_uncertainty(rep, ch, "正文长度", u, "正文上限", n, hard)
+
+            headings = re.findall(r"^##\s+(.+)$", text, flags=re.MULTILINE)
+            need = spec["sections"]["min"]
+            if len(headings) < need:
+                rep.add(ch, "分节", WARN,
+                        f"只识别到 {len(headings)} 个二级标题（`## `），建议至少 {need} 节 —— "
+                        f"Article 没有独立摘要字段，结构要靠分节标题承担", len(headings), f"≥{need}")
+
+    covers = list_files_with_prefix(d, "cover")
+    if not covers:
+        rep.add(ch, "封面", WARN, "没有 cover 开头的封面图 —— 时间线卡片会退化成无图，点击率明显下降")
+    for cp in covers:
+        check_image(cp, spec["cover"], ch, "封面", rep,
+                    max_bytes=spec["cover"]["maxBytes"], formats=spec["cover"]["formats"],
+                    allow_gif=False)
+
+    # 正文插图允许自由比例，只校验体积与格式；不套封面的 16:9。
+    for ip in list_images(d, exclude_prefixes=("cover",)):
+        rep.checked_files += 1
+        name = os.path.basename(ip)
+        size = os.path.getsize(ip)
+        if size > spec["images"]["maxBytes"]:
+            rep.add(ch, "配图", ERROR,
+                    f"{name} 体积 {human_bytes(size)} 超过上限 {human_bytes(spec['images']['maxBytes'])}",
+                    human_bytes(size), human_bytes(spec["images"]["maxBytes"]))
+        else:
+            rep.add(ch, "配图", OK, f"{name} 体积 {human_bytes(size)}")
+        ext = os.path.splitext(name)[1].lstrip(".").lower()
+        if ext not in spec["images"]["formats"]:
+            rep.add(ch, "配图", ERROR,
+                    f"{name} 格式 {ext} 不支持，可用：{', '.join(spec['images']['formats'])}")
+        wh = read_image_size(ip)
+        if wh and wh[0] < spec["images"]["minWidth"]:
+            rep.add(ch, "配图", WARN,
+                    f"{name} 宽仅 {wh[0]}px，低于建议的 {spec['images']['minWidth']}px，高密度屏上会糊",
+                    wh[0], f"≥{spec['images']['minWidth']}")
+
+    meta = read_meta(d)
+    if meta is None:
+        rep.add(ch, "meta.json", WARN,
+                "缺少 meta.json，标题 / 首段 / 分节未校验（见 references/platforms/x/article.md 交付清单）")
+    elif "__error__" in meta:
+        rep.add(ch, "meta.json", ERROR, f"meta.json 解析失败：{meta['__error__']}")
+    else:
+        check_chars(rep, ch, "标题", meta.get("title"), spec["title"]["maxChars"], "标题")
+        check_chars(rep, ch, "首段", meta.get("intro"), spec["intro"]["maxChars"], "首段")
+        if not meta.get("intro"):
+            rep.add(ch, "首段", WARN,
+                    "缺 intro —— Article 不在时间线展开，首段同时是摘要，必须有")
+        if isinstance(meta.get("body"), str) and meta["body"].strip():
+            nb = len(meta["body"])
+            if nb > spec["body"]["safeMax"]:
+                rep.add(ch, "正文长度", WARN,
+                        f"meta.body 共 {nb} 字符，超过稳妥上限 {spec['body']['safeMax']}", nb,
+                        spec["body"]["safeMax"])
+        sections = meta.get("sections")
+        if isinstance(sections, list) and sections:
+            rep.add(ch, "分节", OK, f"meta 声明 {len(sections)} 节")
+        elif isinstance(sections, list):
+            rep.add(ch, "分节", WARN, "meta.sections 为空，结构可能过平")
+
+    texts = collect_banned_texts(d, meta if isinstance(meta, dict) else None)
+    for src, txt in texts:
+        check_banned_text(txt, spec, ch, "风险词", rep, source_name=src)
+
+    rep.add(ch, "入口", WARN,
+            "Article 需要在时间线点击才能打开 —— 请人工确认标题与首段能在不点击的情况下说清利益点")
+
+
 # ------------------------------------------------------------- 通用产品片
 
 def check_generic_motion_film(specs: dict, export_root: str, rep: Report):
@@ -1090,6 +1203,7 @@ FORM_CHECKS = {
     "xiaohongshu/image-text": check_xhs_image_text,
     "xiaohongshu/video": check_xhs_video,
     "generic/motion-film": check_generic_motion_film,
+    "x/article": check_x_article,
 }
 
 # 兼容旧的一级形式名（v1.0 的 channels 取值），仅用于平滑迁移
@@ -1104,7 +1218,7 @@ LEGACY_ALIAS = {
 
 # 路由文档定义的执行顺序：① 事实源 ② 静态形式 ③ 动态形式（见 core/routing.md §5.2）
 DYNAMIC_FORMS = {"wechat/channels", "xiaohongshu/video", "generic/motion-film"}
-STATIC_FORMS = {"wechat/image-text", "wechat/mp-article", "xiaohongshu/image-text"}
+STATIC_FORMS = {"wechat/image-text", "wechat/mp-article", "xiaohongshu/image-text", "x/article"}
 
 
 def check_plan(plan_path: str, specs: dict) -> Report:

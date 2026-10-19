@@ -10,7 +10,10 @@
     "image_msg": "微信官方《订阅号助手升级“图片消息”功能》(2023-03-15)",
     "platform_params": "2025 版公众号/视频号平台参数汇总（非官方原文，标 uncertainty）",
     "xhs_creator": "小红书创作服务平台（发布端编辑器，规格以编辑器实际提示为准） https://creator.xiaohongshu.com",
-    "xhs_third_party": "小红书规格第三方汇总（标记侠《小红书笔记配图与商品主图规范 2026》、果粉吧《小红书网页版发布入口》）—— 非官方原文，相关条目全部标 uncertainty"
+    "xhs_third_party": "小红书规格第三方汇总（标记侠《小红书笔记配图与商品主图规范 2026》、果粉吧《小红书网页版发布入口》）—— 非官方原文，相关条目全部标 uncertainty",
+    "x_official": "X 官方帮助中心 https://help.x.com（Article 未公布完整规格页，仅用于账号与功能定义）",
+    "x_third_party": "X Article 规格第三方汇总与实测（Trusted Reviews《What are X Articles》、xautopilot《X Articles: who can publish them and how》）—— 多个来源一致但非官方公布，一律标 uncertainty",
+    "practice": "本包实务经验，不是平台规则"
   },
   "shared": {
     "image": {
@@ -303,6 +306,56 @@
           "notes": [
             "本形式走 SKILL.md「通用平台 · 产品片」章节的 1–7 步，正式验收靠人工审片。",
             "本自检只做兜底结构检查（文件存在、可探测、时长>0），不校验画幅与封面——产品片允许自由画幅。"
+          ]
+        }
+      }
+    },
+    "x": {
+      "label": "X（Twitter）",
+      "sources": ["x_official", "x_third_party"],
+      "forms": {
+        "article": {
+          "id": "x/article",
+          "label": "X 文章（长文）",
+          "exportPath": "x/article",
+          "body": {
+            "maxChars": 100000,
+            "safeMax": 75000,
+            "recommendedWords": [800, 3000],
+            "uncertainty": "正文上限约 10 万字符（约 1.5 万词）：多个第三方来源一致，但 X 未在公开帮助页给出固定数字。以编辑器实际计数为准。",
+            "source": "x_third_party"
+          },
+          "title": { "maxChars": 200, "recommended": [30, 70], "source": "practice",
+                     "note": "标题必须有；30–70 字符在时间线卡片上最完整，过长会被截断。" },
+          "intro": { "maxChars": 280, "recommended": [60, 180], "source": "practice",
+                     "note": "Article 不在时间线展开，用户先看到标题+封面+第一段；第一段同时是摘要，必须 2–3 句说清。" },
+          "cover": {
+            "width": 1200, "height": 675, "ratio": "16:9", "ratioValue": 1.7778, "ratioTolerance": 0.03,
+            "maxBytes": 5242880, "formats": ["jpg", "jpeg", "png"],
+            "minResolution": { "width": 800, "height": 450 },
+            "source": "practice",
+            "note": "时间线卡片按横版取景；建议 1200x675 或 1600x900。"
+          },
+          "sections": { "min": 2, "recommended": [3, 5], "source": "practice",
+                        "note": "没有独立摘要字段，结构靠分节标题承担；少于 2 节会提示结构过平。" },
+          "images": { "maxBytes": 5242880, "minWidth": 1200, "formats": ["jpg", "jpeg", "png", "gif", "webp"],
+                      "source": "practice", "note": "单图建议 >=1200px 宽；支持多图横排与 GIF。" },
+          "contentFeatures": {
+            "headings": true, "bold": true, "italic": true, "strikethrough": true,
+            "lists": true, "indent": true, "images": true, "video": true, "gif": true,
+            "embedPost": true, "externalLink": true, "customHtml": false, "customCss": false,
+            "source": "x_third_party"
+          },
+          "publish": { "requiresSubscription": "Premium", "editable": true, "source": "x_third_party",
+                       "uncertainty": "发布权限与编辑权益随订阅等级变化；多个来源指出需 Premium 级（非 Premium+）。以账号实际权益为准。" },
+          "bannedContent": [
+            { "pattern": "私信我|加我|加群|点我主页|互关", "why": "导流堆砌，X 对纯导流内容分发不友好" },
+            { "pattern": "包治|百分百|零风险|稳赚|保证收益", "why": "绝对化/效果承诺，金融医疗类高危" }
+          ],
+          "notes": [
+            "本形式只做 Article（约 10 万字符，有标题与分节）；「一条说清」的长帖（约 2.5 万字符）不属于本形式。",
+            "正文用系统字体栈渲染，不加载外部字体；特殊字体段落做成图。",
+            "话题标签文化与小红书不同，正文堆标签显得外行，必要时 1–2 个放文末。"
           ]
         }
       }

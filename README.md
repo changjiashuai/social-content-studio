@@ -1,8 +1,8 @@
 # social-content-studio · 社交内容工坊
 
-**一个自带全部能力的独立 skill。** 把一次内容生产按 **「先选平台，再选内容形式」** 的两级结构组织起来，覆盖微信、小红书与自有渠道，并按平台渐进扩展。
+**一个自带全部能力的独立 skill。** 把一次内容生产按 **「先选平台，再选内容形式」** 的两级结构组织起来，覆盖微信、小红书、X 与自有渠道，并按平台渐进扩展。
 
-- 版本：**1.5.0**
+- 版本：**1.6.0**
 - 作者：**changjiashuai**
 - 授权：**AGPL-3.0**（见 [LICENSE](LICENSE)；包内全部内容均为作者原创，无第三方组件，见 [references/THIRD-PARTY.md](references/THIRD-PARTY.md)）
 - 基线：**`references/BASELINE.md`**（能力清单 + 校验命令 + 基线指纹 + 扩展契约）
@@ -25,6 +25,7 @@
 | **视频号视频** | `wechat/channels` | `references/platforms/wechat/channels.md` |
 | **小红书图文笔记** | `xiaohongshu/image-text` | `references/platforms/xiaohongshu/image-text.md` |
 | **小红书视频笔记** | `xiaohongshu/video` | `references/platforms/xiaohongshu/video.md` |
+| **X 文章（长文）** | `x/article` | `references/platforms/x/PLATFORM.md` + `article.md` |
 | 产品取材、`DIRECTION.md`、镜头表、专属手法推导 | 全部形式共用 | `SKILL.md` 影片第 1–7 步 + `references/core/pipeline.md` |
 | 工程初始化 / 环境预检 / 无头渲染 / 编码 / 混音 / 结构自检 | `generic/motion-film` | `scripts/video-line/`（6 个脚本） |
 | 起步工程 + 默认样式 + 手法样例 + 配乐示例 + 11 个原创音效 | `generic/motion-film` | `assets/platforms/generic/` |
@@ -39,15 +40,16 @@
 
 ## 2. 怎么触发
 
-说"用社交内容工坊做一份内容"，或直接用触发词：微信图文、小绿书、公众号文章、公众号排版、视频号、小红书图文、小红书笔记、小红书视频、多平台分发、产品宣传片、版本更新片、changelog、social content、product promo。
+说"用社交内容工坊做一份内容"，或直接用触发词：微信图文、小绿书、公众号文章、公众号排版、视频号、小红书图文、小红书笔记、小红书视频、X 文章、推特长文、多平台分发、产品宣传片、版本更新片、changelog、social content、product promo。
 
 **它做的第一件事一定是问你两次**（都可多选）：
 
-1. **投放哪些平台**：`1 微信` / `2 小红书` / `3 通用（自有渠道）`
+1. **投放哪些平台**：`1 微信` / `2 小红书` / `3 通用（自有渠道）` / `4 X（Twitter）`
 2. **每个平台要哪种形式**：
    - 微信 → `1 图文（图片+文案）` / `2 公众号（长文）` / `3 视频号（视频）`
    - 小红书 → `1 图文笔记` / `2 视频笔记`
    - 通用 → `1 影片`（片型由内容定：产品片 / 科普 / 数据 / 叙事）
+   - X → `1 文章（长文）`
 
 多选时按「**事实源 → 静态切片 → 动态切片**」串行执行（先长后短、先静后动），保证各端口径一致。
 
@@ -179,6 +181,7 @@ social-content-studio/
 │   └── platforms/                  # 平台包（彼此独立）
 │       ├── wechat/{PLATFORM,specs,image-text,mp-article,channels}.md
 │       ├── xiaohongshu/{PLATFORM,specs,image-text,video}.md
+│       ├── x/{PLATFORM,specs,article}.md
 │       └── generic/{PLATFORM,specs}.md + motion-film/（18 个分册）
 ├── assets/platforms/
 │   ├── wechat/…                    # 5 套模板（图卡 / 正文片段 / 头条封面 / 次条封面 / 视频号封面）
@@ -273,6 +276,7 @@ python3 -m unittest discover -s $SKILL/tests
 
 | 版本 | 说明 |
 |---|---|
+| **v1.6.0** | **新增 X 平台包（`x/article`）。** 明确区分「长帖（约 2.5 万字符、无分节）」与「Article（约 10 万字符、有标题与分节）」；`specs.md` 逐条带来源分级，正文上限标 `uncertainty` + 稳妥值 75000；新增 `check_x_article`（字数/封面 16:9/分节/配图/风险词）。顺带修复 `uncertain_max` 不认 `maxChars` 的崩溃、风险词扫描漏扫 `intro`。回归测试 137 → 153 项。 |
 | **v1.5.0** | **补上配音能力。** 新增 `voiceover.md` 与 `make_voiceover.py`：用户未指定时优先 **edge-tts**（免费、无需 key），按片子气质选音色并记录理由；edge-tts 不可用再找其他免费 TTS；**都没有则停下来问用户**。`say` / SAPI / eSpeak 等系统机器音**一律禁用**——没有配音优于机器音。环境预检增加 TTS 探测但不阻塞渲染。分册 18 → 19，回归测试 131 → 137 项。 |
 | **v1.4.0** | **影片形式通用化：片型由内容决定，不再一律做成产品片。** 形式改名为 `generic/motion-film`（目录同步），**旧 ID 不再兼容**；新增 `filmKind`（`product` / `evidence` / `explainer` / `story`），`check_delivery.py` 按片型分派必备项；**不声明时等于 `product`**，默认严格度不变；任何片型都不许假造界面。回归测试 122 → 131 项。 |
 | **v1.3.0** | **补上「只给网址」这条最常见路径。** 新增 `web-first.md`（A/B/C 三级证据源 + 公开来源清单 + 三条硬线）与 `research-brief.md`（`RESEARCH.md` 四问契约，B/C 级必写）；`direction.md` 加「证据级别 → 允许的信息形状」约束；`check_delivery.py` 新增 `evidenceLevel` 与 `research_checks`（缺调研摘要阻断，原组件要求在非仓库级别降级为警告但不放开伪造）。分册 15 → 18，回归测试 116 → 122 项。 |
