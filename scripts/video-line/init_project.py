@@ -126,7 +126,7 @@ export function FeatureVisual() {
 
 保留原有用户决定；没有确认的字段不要伪装成已确认。正式成片完成后同步 plan.json 与实际时间线。
 """)
-    (target/'DIRECTION.md').write_text('''# 影片方向（写代码前完成，见 references/platforms/generic/product-video/direction.md）
+    (target/'DIRECTION.md').write_text('''# 影片方向（写代码前完成，见 references/platforms/generic/motion-film/direction.md）
 
 > 这份文件只有问题，没有答案。每一项都从这个产品本身推导；不要照抄案例或上一支片子。
 
@@ -161,7 +161,7 @@ export function FeatureVisual() {
 | # | 时间 | 镜头 | 主角 | 画面与动作 | 文案 | 声音 |
 |---|---|---|---|---|---|---|
 ''')
-    print(json.dumps({'project':str(target),'style':args.style,'demo':True,'next':'Research the product, then write DIRECTION.md (references/platforms/generic/product-video/direction.md) before production shots.'},ensure_ascii=False))
+    print(json.dumps({'project':str(target),'style':args.style,'demo':True,'next':'Research the product, then write DIRECTION.md (references/platforms/generic/motion-film/direction.md) before production shots.'},ensure_ascii=False))
 
 if __name__ == '__main__':
     main()

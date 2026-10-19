@@ -47,4 +47,4 @@
 - 不含音效或字体文件（一律走系统字体栈，见 `tokens.css` 的字体分工）。
 - 不含平台规则：画幅、时长、封面比例等以 `references/platforms/generic/specs.md` 与 `scripts/social_specs.json` 为准。
 
-使用目标产品自己的品牌资源；需要换肤时按 `references/platforms/generic/product-video/repo-and-style.md` 的范围处理，不要覆盖被演示软件的界面样式。
+使用目标产品自己的品牌资源；需要换肤时按 `references/platforms/generic/motion-film/repo-and-style.md` 的范围处理，不要覆盖被演示软件的界面样式。

@@ -1051,9 +1051,9 @@ def _check_topics(rep: Report, ch: str, topics, tspec: dict):
 
 # ------------------------------------------------------------- 通用产品片
 
-def check_generic_product_video(specs: dict, export_root: str, rep: Report):
+def check_generic_motion_film(specs: dict, export_root: str, rep: Report):
     """产品片走视频线原生流程，这里只做兜底结构检查（不校验画幅/封面）。"""
-    spec = form_spec(specs, "generic/product-video")
+    spec = form_spec(specs, "generic/motion-film")
     ch = spec["id"]
     d = os.path.join(export_root, spec["exportPath"])
     if not os.path.isdir(d):
@@ -1089,7 +1089,7 @@ FORM_CHECKS = {
     "wechat/channels": check_wechat_channels,
     "xiaohongshu/image-text": check_xhs_image_text,
     "xiaohongshu/video": check_xhs_video,
-    "generic/product-video": check_generic_product_video,
+    "generic/motion-film": check_generic_motion_film,
 }
 
 # 兼容旧的一级形式名（v1.0 的 channels 取值），仅用于平滑迁移
@@ -1097,14 +1097,13 @@ LEGACY_ALIAS = {
     "wechat-image-text": "wechat/image-text",
     "wechat-mp-article": "wechat/mp-article",
     "wechat-channels": "wechat/channels",
-    "product-video": "generic/product-video",
 }
 
 
 # ------------------------------------------------------- plan.json 契约校验
 
 # 路由文档定义的执行顺序：① 事实源 ② 静态形式 ③ 动态形式（见 core/routing.md §5.2）
-DYNAMIC_FORMS = {"wechat/channels", "xiaohongshu/video", "generic/product-video"}
+DYNAMIC_FORMS = {"wechat/channels", "xiaohongshu/video", "generic/motion-film"}
 STATIC_FORMS = {"wechat/image-text", "wechat/mp-article", "xiaohongshu/image-text"}
 
 
@@ -1233,7 +1232,7 @@ def check_plan(plan_path: str, specs: dict) -> Report:
         rep.add(ch, "audience", OK, f"读者类型 {aud}")
 
     # 风格推导：产品片要求可验收（见 style-derivation.md）
-    if "generic/product-video" in selected:
+    if "generic/motion-film" in selected:
         _check_style_derivation(plan.get("styleDerivation"), rep, ch)
 
     return rep
@@ -1244,7 +1243,7 @@ def _check_style_derivation(sd, rep: Report, ch: str):
     item = "styleDerivation"
     if sd is None:
         rep.add(ch, item, WARN,
-                "缺少 styleDerivation —— 风格应从内容推导（见 product-video/style-derivation.md）")
+                "缺少 styleDerivation —— 风格应从内容推导（见 motion-film/style-derivation.md）")
         return
     if not isinstance(sd, dict):
         rep.add(ch, item, ERROR, "styleDerivation 必须是对象")
@@ -1347,7 +1346,7 @@ def collect_screen_texts(specs: dict, forms: list[str], export_root: str) -> lis
                 except OSError:
                     pass
         # 视频线的上屏文案通常在 plan.json 的 shot 文案里
-        if fid.endswith("video") or fid == "generic/product-video":
+        if fid.endswith("video") or fid == "generic/motion-film":
             p = os.path.join(os.path.abspath(export_root), "..", "plan.json")
             if os.path.isfile(p):
                 try:

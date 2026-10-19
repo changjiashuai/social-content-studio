@@ -122,7 +122,7 @@ class TestRegistry(Base):
         p = subprocess.run([PY, SCRIPT, "--list"], capture_output=True, text=True)
         self.assertEqual(p.returncode, 0, p.stderr)
         for fid in ("wechat/image-text", "wechat/mp-article", "wechat/channels",
-                    "xiaohongshu/image-text", "xiaohongshu/video", "generic/product-video"):
+                    "xiaohongshu/image-text", "xiaohongshu/video", "generic/motion-film"):
             self.assertIn(fid, p.stdout, f"--list 未列出 {fid}")
 
     def test_print_specs_single_form(self):
@@ -568,8 +568,8 @@ class TestXhsVideo(Base):
 # ───────────────────────────────────── 通用产品片
 
 class TestGenericProductVideo(Base):
-    FORM = "generic/product-video"
-    SUB = "generic/product-video"
+    FORM = "generic/motion-film"
+    SUB = "generic/motion-film"
 
     def test_missing_dir_is_error(self):
         rc, out = self.run_check(self.FORM)
@@ -893,9 +893,9 @@ class TestCheckPlan(Base):
         """--check-plan 是纯契约校验，不该要求产出目录存在。"""
         with tempfile.TemporaryDirectory() as tmp:
             p = self.write_plan(tmp, {
-                "selection": {"generic": ["product-video"]},
-                "factSource": "generic/product-video",
-                "order": ["generic/product-video"],
+                "selection": {"generic": ["motion-film"]},
+                "factSource": "generic/motion-film",
+                "order": ["generic/motion-film"],
                 "audience": "executive",
             })
             rc, out = self.run_plan(p)
@@ -1012,9 +1012,9 @@ class TestStyleDerivation(Base):
         return proc.returncode, proc.stdout + proc.stderr
 
     def base_plan(self, sd=None):
-        plan = {"selection": {"generic": ["product-video"]},
-                "factSource": "generic/product-video",
-                "order": ["generic/product-video"],
+        plan = {"selection": {"generic": ["motion-film"]},
+                "factSource": "generic/motion-film",
+                "order": ["generic/motion-film"],
                 "audience": "executive"}
         if sd is not None:
             plan["styleDerivation"] = sd

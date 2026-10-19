@@ -107,7 +107,7 @@ FORM_CHECKS = {
     "wechat/channels": check_wechat_channels,
     "xiaohongshu/image-text": check_xhs_image_text,
     "xiaohongshu/video": check_xhs_video,
-    "generic/product-video": check_generic_product_video,
+    "generic/motion-film": check_generic_product_video,
 }
 ```
 

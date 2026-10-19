@@ -8,7 +8,7 @@ from pathlib import Path
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--output',type=Path,required=True)
 args=parser.parse_args()
-if not shutil.which('ffmpeg'):parser.error('FFmpeg is required; follow references/platforms/generic/product-video/onboarding.md.')
+if not shutil.which('ffmpeg'):parser.error('FFmpeg is required; follow references/platforms/generic/motion-film/onboarding.md.')
 if args.output.exists() and (not args.output.is_dir() or any(args.output.iterdir())):
     parser.error('Use an empty output directory; existing audio will not be overwritten.')
 args.output.mkdir(parents=True,exist_ok=True)

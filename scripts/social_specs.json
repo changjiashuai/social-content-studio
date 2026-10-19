@@ -279,10 +279,10 @@
       "label": "通用（自有渠道）",
       "sources": [],
       "forms": {
-        "product-video": {
-          "id": "generic/product-video",
-          "label": "产品片（宣传片 / 版本更新片）",
-          "exportPath": "generic/product-video",
+        "motion-film": {
+          "id": "generic/motion-film",
+          "label": "影片（产品片 / 科普 / 数据 / 叙事，按内容定片型）",
+          "exportPath": "generic/motion-film",
           "video": {
             "aspectRange": [0.3, 3.4],
             "durationSeconds": { "min": 1, "max": 3600 },

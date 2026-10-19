@@ -4,7 +4,7 @@
 
 - 不要把整组手法搬进同一支片子。一支片子一般 3–5 个专属手法，从 `DIRECTION.md` 的"产品气质"推导出来。
 - 用之前先改写：颜色、形状来源、密度、速度曲线、方向都换成这个产品的。参数表里每一项都写了该从哪里取值。
-- 同一个工作区里，上一支片子用过的开场、转场和背景，这一支换掉或明显改写（见 `references/platforms/generic/product-video/direction.md` 的"反重复"）。
+- 同一个工作区里，上一支片子用过的开场、转场和背景，这一支换掉或明显改写（见 `references/platforms/generic/motion-film/direction.md` 的"反重复"）。
 - 这里没有的手法（渐变场、墨迹、等距挤出、数据曲线、纸张、物理弹簧……）照同样的约束自己写：纯时间函数，挂到 `onRender` 或 GSAP 时间轴上。
 
 | 文件 | 手法 | 从产品哪里取参数 | 何时不用 |
@@ -16,4 +16,4 @@
 | `slices.jsx` | 切片错位入场 | 条数、错位幅度、光条颜色 | 当作默认标题入场；安静的叙事段落 |
 | `orbit.js` | 手工投影的环绕 | 成员数量来自真实数据（集成、服务商、插件） | 成员不足以成环；为了凑数虚构成员 |
 
-每个文件顶部有更具体的说明。CodePilot 那支片子怎样把这些手法和产品对应起来，见 `references/platforms/generic/product-video/case-study.md`，那是一次推导的例子，不是标准答案。
+每个文件顶部有更具体的说明。CodePilot 那支片子怎样把这些手法和产品对应起来，见 `references/platforms/generic/motion-film/case-study.md`，那是一次推导的例子，不是标准答案。

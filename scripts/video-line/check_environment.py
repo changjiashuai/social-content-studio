@@ -105,7 +105,7 @@ console.log(JSON.stringify(result));'''
             except ValueError:missing.append('hyperframes-doctor');warnings.append(result['output'][:1600])
     ready=not missing
     report={'ready':ready,'cached':bool(cached),'engine':a.engine,'missing':missing,'warnings':warnings,'fingerprint':fingerprint,'details':details,'browser':browser,
-            'next':'Continue; do not load onboarding.' if ready else 'Read references/platforms/generic/product-video/onboarding.md for only the reported engine/platform gaps, install them, then rerun with --force.'}
+            'next':'Continue; do not load onboarding.' if ready else 'Read references/platforms/generic/motion-film/onboarding.md for only the reported engine/platform gaps, install them, then rerun with --force.'}
     if not state.parent.is_dir():state.parent.mkdir(parents=True)
     state.write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
     print(json.dumps({k:v for k,v in report.items() if k!='details'},ensure_ascii=False,indent=2))

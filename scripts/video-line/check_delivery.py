@@ -91,6 +91,59 @@ def first_frame_metrics(video, count=5):
 
 EVIDENCE_LEVELS = ['repo', 'material', 'web']
 
+# 片型：由内容决定，不预设。未声明时按 product 处理，保持既有严格度不变。
+FILM_KINDS = ['product', 'evidence', 'explainer', 'story']
+# 各片型的必备项：
+#   product   —— 需要可追溯的功能主张（原有行为）
+#   evidence  —— 需要事实溯源（FACTS），不要求功能主张
+#   explainer —— 讲清一个概念/机理，需要出处，不要求功能主张
+#   story     —— 叙事为主，不要求主张；但示意内容必须声明
+CLAIM_KINDS = {'product'}
+
+
+def film_kind(plan):
+    """片型：product（默认）/ evidence / explainer / story。
+
+    声明什么片型，就承担什么验收；不声明等于 product。
+    这是为了让非产品内容不被产品片契约卡死，而不是给产品片开后门。
+    """
+    kind = plan.get('filmKind') or 'product'
+    return kind if kind in FILM_KINDS else 'product'
+
+
+def film_kind_checks(plan, errors, warnings, project_dir):
+    """按片型分派验收：不同片型承担不同的必备项。"""
+    if plan.get('demo') is not False:
+        return
+    kind = film_kind(plan)
+
+    if kind in CLAIM_KINDS:
+        if not any(isinstance(s, dict) and s.get('claim') is True for s in plan['shots']):
+            errors.append('Production promo needs at least one evidenced feature claim')
+        return
+
+    # 非产品片：不要求功能主张，但必须交代「凭什么这么说」
+    has_claim = any(isinstance(s, dict) and s.get('claim') is True for s in plan['shots'])
+    if kind in ('evidence', 'explainer'):
+        if not has_claim:
+            root = Path(project_dir or '.')
+            facts = root / 'evidence' / 'FACTS.md'
+            research = root / 'RESEARCH.md'
+            if not (facts.is_file() or research.is_file()):
+                errors.append(
+                    'Film kind "' + kind + '" makes factual claims, so it needs evidence/FACTS.md '
+                    'or RESEARCH.md (references/platforms/generic/motion-film/provenance.md); '
+                    'without sources there is nothing to stand on')
+    if kind == 'story':
+        # 叙事片允许虚构，但不许把虚构说成事实
+        if not nonempty(plan.get('fictionNote')) and not has_claim:
+            warnings.append(
+                'Story films usually need fictionNote explaining what is invented; '
+                'otherwise a viewer may read it as fact')
+
+
+
+
 
 def evidence_level(plan):
     """产品片证据级别：repo（有源码）/ material（只有截图录屏）/ web（只有网址）。
@@ -111,7 +164,7 @@ def research_checks(plan, errors, warnings, project_dir):
         if not path.is_file():
             errors.append(
                 'Production film at evidence level "' + level + '" needs RESEARCH.md '
-                '(references/platforms/generic/product-video/research-brief.md): '
+                '(references/platforms/generic/motion-film/research-brief.md): '
                 'product, public facts with URLs, what the level excludes, one-line conclusion')
             return
         text = path.read_text(encoding='utf-8', errors='replace')
@@ -128,7 +181,7 @@ def direction_checks(plan, errors, warnings, project_dir):
     if plan.get('demo') is not False:return
     path=Path(project_dir or '.')/'DIRECTION.md'
     if not path.is_file():
-        errors.append('Production film needs DIRECTION.md (references/platforms/generic/product-video/direction.md): concept, derived devices, frame system, shot list');return
+        errors.append('Production film needs DIRECTION.md (references/platforms/generic/motion-film/direction.md): concept, derived devices, frame system, shot list');return
     text=path.read_text(encoding='utf-8',errors='replace')
     rows=[l for l in text.splitlines() if l.strip().startswith('|') and not set(l.replace('|','').strip())<=set('-: ')]
     if len(rows)<len(plan.get('shots',[]))+1:
@@ -150,16 +203,19 @@ def creative_checks(plan, errors, warnings, project_dir, mix_report, final_video
         if not typography.get('zhFont') or not typography.get('enFont') or typography.get('zhFont')==typography.get('enFont'):
             issue.append('Specify separate Chinese and English headline fonts')
     if production:
-        if not any(isinstance(s,dict) and s.get('claim') is True for s in plan['shots']):
-            errors.append('Production promo needs at least one evidenced feature claim')
         if plan.get('audioRequired') is False and not nonempty(plan.get('audioExceptionReason')):
             errors.append('Disabling audio needs audioExceptionReason documenting the user request')
+    film_kind_checks(plan, errors, warnings, project_dir)
     actions={};required=set()
     for shot in plan['shots']:
         if not isinstance(shot,dict):continue
         label=str(shot.get('id','shot'))
         if production and shot.get('type') in ['detail','workspace','macro'] and not nonempty(shot.get('component')):
-            if evidence_level(plan) == 'repo':
+            if film_kind(plan) != 'product':
+                # 非产品片没有业务组件可接，这是正常的；但不能画假界面。
+                warnings.append(label+' has no component source; at film kind "'+film_kind(plan)+
+                                '" a product interface must not be invented (web-first.md §3)')
+            elif evidence_level(plan) == 'repo':
                 errors.append(label+' needs a component source for its feature visual')
             else:
                 warnings.append(label+' has no component source at evidence level "'+evidence_level(plan)+
@@ -249,6 +305,8 @@ def check(plan, video=None, project_dir=None, mix_report=None, plan_path=None):
         warnings.append('Technical demo; not a completed promotional film')
     if plan.get('evidenceLevel') not in (None, *EVIDENCE_LEVELS):
         errors.append('evidenceLevel must be one of ' + '/'.join(EVIDENCE_LEVELS))
+    if plan.get('filmKind') not in (None, *FILM_KINDS):
+        errors.append('filmKind must be one of ' + '/'.join(FILM_KINDS))
     shots = plan.get('shots')
     if not isinstance(shots, list) or not shots:
         errors.append('shots must be a nonempty array')

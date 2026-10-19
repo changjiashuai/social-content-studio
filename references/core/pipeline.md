@@ -80,7 +80,7 @@
 - **多形式只写一份**：它放在内容目录，不在各 `export/<平台>/<形式>/` 下——正好支撑「事实源 → 静态 → 动态」的口径一致链。改数字先改 FACTS，再改各处产出。
 - 状态只有三种：`已核实` / `示意` / `待核实`。标「示意」的**不许**配「实测」「官方数据显示」一类措辞。
 - **这是内控文件，不进交付清单、不主动展示**。用户问起来源如实回答；证据链断裂时用一句话说明结论，不必透出整张表。
-- 契约与示例见 [内部溯源](../platforms/generic/product-video/provenance.md)；脚本的分级判断见 [generic/specs.md](../platforms/generic/specs.md) §3。
+- 契约与示例见 [内部溯源](../platforms/generic/motion-film/provenance.md)；脚本的分级判断见 [generic/specs.md](../platforms/generic/specs.md) §3。
 
 ---
 

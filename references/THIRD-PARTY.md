@@ -38,7 +38,7 @@
 
 | 名称 | 出现位置 | 性质 |
 |---|---|---|
-| `CodePilot`（14 处 / 9 文件）、`Hero UI`、`Talis`、`Zed`、`GLM 5.3`、`TokenDance` | `references/platforms/generic/product-video/` 下的 `case-study.md`、`component-pipeline.md`、`cover.md`、`direction.md`、`story-and-copy.md`、`assets/platforms/generic/fx-lab/README.md`、`assets/platforms/generic/audio/SOURCE.md`、`audio/score-example-*.py` | **案例对象**：`case-study.md` 复盘的产品，以及其中引用的参考片和故障条目里出现的组件名 |
+| `CodePilot`（14 处 / 9 文件）、`Hero UI`、`Talis`、`Zed`、`GLM 5.3`、`TokenDance` | `references/platforms/generic/motion-film/` 下的 `case-study.md`、`component-pipeline.md`、`cover.md`、`direction.md`、`story-and-copy.md`、`assets/platforms/generic/fx-lab/README.md`、`assets/platforms/generic/audio/SOURCE.md`、`audio/score-example-*.py` | **案例对象**：`case-study.md` 复盘的产品，以及其中引用的参考片和故障条目里出现的组件名 |
 | `HyperFrames`（22 处 / 7 文件） | `onboarding.md`、`PLATFORM.md`、`scripts/video-line/check_environment.py` 等 | **外部运行时依赖名**：npm 包名、CLI 命令、`--engine` 取值 |
 | `Pixabay`（7 处 / 4 文件） | `audio-sourcing.md`、`audio-and-qa.md`、`case-study.md`、`assets/platforms/generic/audio/SOURCE.md` | **素材来源与许可标注**：用于声明本 skill 不捆绑这些录音、不携带其原片 |
 | `media-use`（2 处 / 2 文件） | `audio-sourcing.md`、`case-study.md` | **本机另一个 skill 的名称**：操作指引，提示用户到哪里取本地素材库 |

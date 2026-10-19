@@ -105,7 +105,7 @@ export/
 │   ├── image-text/    # 01..NN.jpg + cover-34.jpg + meta.json + copy.md + check.json
 │   └── video/         # final.mp4 + cover-34.jpg + meta.json + copy.md + check.json
 ├── generic/
-│   └── product-video/ # （若选了通用产品片）final.mp4 + 三画幅封面
+│   └── motion-film/ # （若选了通用产品片）final.mp4 + 三画幅封面
 └── consistency.md     # 一致性核对表（第 2 节那张表的填好版）+ 发布顺序 + 挂载关系 + 未核实项
 ```
 

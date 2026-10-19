@@ -44,7 +44,7 @@
 
 ## 覆盖范围
 
-六个形式全部适用：`wechat/image-text`、`wechat/mp-article`、`wechat/channels`、`xiaohongshu/image-text`、`xiaohongshu/video`、`generic/product-video`。
+六个形式全部适用：`wechat/image-text`、`wechat/mp-article`、`wechat/channels`、`xiaohongshu/image-text`、`xiaohongshu/video`、`generic/motion-film`。
 
 其中：
 

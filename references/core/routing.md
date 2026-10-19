@@ -49,7 +49,7 @@
 
 | 序号 | 形式 ID | 标签 | 说明 |
 |---|---|---|---|
-| 1 | `generic/product-video` | `1 产品片（原视频线）` | 产品宣传片 / 版本更新片，横版 16:9，可自由画幅 |
+| 1 | `generic/motion-film` | `1 影片` | 代码驱动的成片：产品片 / 科普 / 数据 / 叙事，片型由内容定，画幅可自由 |
 
 **参数**：`multiSelect: true`；`header` 用「内容形式」。
 
@@ -87,7 +87,7 @@
 ```
 ① 事实源（上表命中项，最先做）
 ② 其余静态形式：wechat/image-text、xiaohongshu/image-text
-③ 动态形式：wechat/channels、xiaohongshu/video、generic/product-video
+③ 动态形式：wechat/channels、xiaohongshu/video、generic/motion-film
 ```
 
 同层内按用户选择顺序。**先长后短、先静后动**——反了会导致各端口径打架，或长文退化成视频脚本的注水版。
@@ -95,7 +95,7 @@
 ### 5.3 红线
 
 - 不允许"先做视频再倒推长文"。长文是可信度最高的载体，让它去追视频的口播稿，等于把可信度最高的载体降级。
-- 只有 `generic/product-video` 时，独立走视频线原生流程（`SKILL.md` 视频线章节 1–7 步），不受本节约束。
+- 只有 `generic/motion-film` 时，独立走视频线原生流程（`SKILL.md` 视频线章节 1–7 步），不受本节约束。
 
 ---
 
@@ -142,7 +142,7 @@
 }
 ```
 
-- **形式 ID 统一写作 `平台/形式`**（`wechat/image-text`、`xiaohongshu/video`、`generic/product-video`）。
+- **形式 ID 统一写作 `平台/形式`**（`wechat/image-text`、`xiaohongshu/video`、`generic/motion-film`）。
 - `selection` 的键是平台 ID，值是该平台下选中的形式 ID（**不带平台前缀**）。
 - **后续所有步骤只从 `plan.json` 读形式**，不允许在某一步凭记忆改；确需变更时改 `plan.json` 并在 `BRIEF.md` 记一条变更理由。
 
@@ -159,9 +159,9 @@ python3 <skill-dir>/scripts/check_social_delivery.py --check-plan <content-dir>/
 
 退出码 `0` 通过 / `1` 有 error（或 `--strict` 下有 warning）/ `2` 用法问题。**这不是可选项**——与「产出物自检」同一条纪律：能用脚本判的就别靠自觉。
 
-### 7.2 风格推导字段（仅产品片）
+### 7.2 风格推导字段（`generic/motion-film`）
 
-选了 `generic/product-video` 时，`plan.json` 还要写 `styleDerivation`。它不是备注，是把「风格从内容推出来」这件事变成可验收的产物（推导方法见 [风格推导](../platforms/generic/product-video/style-derivation.md)）：
+选了 `generic/motion-film` 时，`plan.json` 还要写 `styleDerivation`。它不是备注，是把「风格从内容推出来」这件事变成可验收的产物（推导方法见 [风格推导](../platforms/generic/motion-film/style-derivation.md)）：
 
 ```json
 "styleDerivation": {
@@ -183,12 +183,13 @@ python3 <skill-dir>/scripts/check_social_delivery.py --check-plan <content-dir>/
 | `personality` | 建议 | 五轴各 −2…+2，超出即 error |
 | `invariants` | 建议 | 至少 5 条 |
 | `evidenceLevel` | 建议 | `repo` / `material` / `web`；B/C 级另需 `RESEARCH.md` |
+| `filmKind` | 建议 | `product`（默认）/ `evidence` / `explainer` / `story`；不填等于 `product` |
 | `prohibitions` | 建议 | 至少 3 条 |
 | `benchmarks` | 建议 | §0 的标杆，至少一个 |
 
 `--check-plan` 会逐项校验。**这是契约不是流程**：先推导、再写进 `plan.json`、再由脚本核对；顺序反过来（先编字段）没有意义。
 
-`evidenceLevel` 单独说明一句：它记录「你手上到底有什么」。`web` / `material` 时，`check_delivery.py` 要求工程里有 `RESEARCH.md`（[调研摘要](../platforms/generic/product-video/research-brief.md)），并把「功能镜头必须有原组件」降级为警告——**降级不等于放开伪造**，只是承认这种级别做不了交互演示。
+`evidenceLevel` 单独说明一句：它记录「你手上到底有什么」。`web` / `material` 时，`check_delivery.py` 要求工程里有 `RESEARCH.md`（[调研摘要](../platforms/generic/motion-film/research-brief.md)），并把「功能镜头必须有原组件」降级为警告——**降级不等于放开伪造**，只是承认这种级别做不了交互演示。
 
 ---
 
@@ -211,7 +212,7 @@ python3 <skill-dir>/scripts/check_social_delivery.py --check-plan <content-dir>/
 │   │   ├── image-text/           # 3:4 图集 + cover-34.jpg + meta.json + copy.md
 │   │   └── video/                # final.mp4 + cover-34.jpg + meta.json + copy.md
 │   └── generic/
-│       └── product-video/        # final.mp4 + 3:4 / 4:3 / 16:9 封面
+│       └── motion-film/        # final.mp4 + 3:4 / 4:3 / 16:9 封面
 └── work/                         # 各形式的可复现工程（渲染脚本、HTML 舞台等）
 ```
 

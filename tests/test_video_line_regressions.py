@@ -288,4 +288,93 @@ class EvidenceLevel(unittest.TestCase):
             warns = delivery.check(self.make_plan('web'), project_dir=d)['warnings']
         self.assertTrue(any('no source URL' in w for w in warns), warns)
 
+class FilmKind(unittest.TestCase):
+    """片型由内容决定：不声明时按 product（保持原有严格度），声明其他片型则放宽对应项。"""
+
+    def make_plan(self, kind=None, claim=False):
+        plan = {'duration': 10, 'fps': 30, 'width': 1920, 'height': 1080,
+                'style': 'default', 'repo': None, 'demo': False, 'audioRequired': True,
+                'typography': {'mode': 'bilingual', 'zhFont': 'PingFang SC',
+                               'enFont': 'Georgia', 'zhStyle': 'sans-serif'},
+                'shots': [
+                    {'id': 'intro', 'start': 0, 'end': 4, 'type': 'title',
+                     'headlineEn': 'Saturn', 'headline': '土星', 'description': '环怎么来的',
+                     'descriptionAt': 0, 'claim': False, 'source': [],
+                     'actions': [{'id': 'a1', 'at': 0, 'action': 'x', 'soundRequired': True}]},
+                    {'id': 'detail', 'start': 4, 'end': 10, 'type': 'detail',
+                     'headlineEn': 'Rings', 'headline': '环的成分', 'description': '冰粒组成',
+                     'descriptionAt': 0, 'claim': claim,
+                     'source': ['https://nasa.gov'] if claim else [],
+                     'plainExplanation': '资料描述', 'component': None,
+                     'actions': [{'id': 'a2', 'at': 0, 'action': 'y', 'soundRequired': True}]}]}
+        if kind:
+            plan['filmKind'] = kind
+        return plan
+
+    def errors(self, plan, d):
+        delivery = module('check_delivery')
+        return delivery.check(plan, project_dir=d)['errors']
+
+    def test_default_kind_is_product_and_keeps_strictness(self):
+        """不声明片型时行为与以前一致：要求 feature claim。"""
+        with tempfile.TemporaryDirectory() as d:
+            errs = self.errors(self.make_plan(), d)
+        self.assertTrue(any('evidenced feature claim' in e for e in errs), errs)
+
+    def test_explainer_does_not_require_feature_claim(self):
+        with tempfile.TemporaryDirectory() as d:
+            Path(d, 'evidence').mkdir()
+            Path(d, 'evidence', 'FACTS.md').write_text(
+                '| 主张 | 上屏内容 | 来源 |\n|---|---|---|\n| x | y | https://e.com |\n',
+                encoding='utf-8')
+            errs = self.errors(self.make_plan('explainer'), d)
+        self.assertFalse(any('feature claim' in e for e in errs), errs)
+        self.assertFalse(any('FACTS' in e for e in errs), errs)
+
+    def test_explainer_without_sources_is_error(self):
+        with tempfile.TemporaryDirectory() as d:
+            errs = self.errors(self.make_plan('explainer'), d)
+        self.assertTrue(any('FACTS.md or RESEARCH.md' in e for e in errs), errs)
+
+    def test_explainer_accepts_research_md_as_source(self):
+        with tempfile.TemporaryDirectory() as d:
+            Path(d, 'RESEARCH.md').write_text('https://e.com', encoding='utf-8')
+            errs = self.errors(self.make_plan('explainer'), d)
+        self.assertFalse(any('FACTS.md or RESEARCH.md' in e for e in errs), errs)
+
+    def test_story_does_not_require_claim_or_sources(self):
+        with tempfile.TemporaryDirectory() as d:
+            errs = self.errors(self.make_plan('story'), d)
+        self.assertFalse(any('feature claim' in e for e in errs), errs)
+        self.assertFalse(any('FACTS.md or RESEARCH.md' in e for e in errs), errs)
+
+    def test_story_without_fiction_note_warns(self):
+        delivery = module('check_delivery')
+        with tempfile.TemporaryDirectory() as d:
+            warns = delivery.check(self.make_plan('story'), project_dir=d)['warnings']
+        self.assertTrue(any('fictionNote' in w for w in warns), warns)
+
+    def test_story_with_fiction_note_is_quiet(self):
+        delivery = module('check_delivery')
+        plan = self.make_plan('story')
+        plan['fictionNote'] = '人物与情节为虚构示意'
+        with tempfile.TemporaryDirectory() as d:
+            warns = delivery.check(plan, project_dir=d)['warnings']
+        self.assertFalse(any('fictionNote' in w for w in warns), warns)
+
+    def test_non_product_kind_never_requires_component(self):
+        """非产品片没有业务组件可接，但必须提醒不得画假界面。"""
+        delivery = module('check_delivery')
+        for kind in ('explainer', 'story', 'evidence'):
+            with tempfile.TemporaryDirectory() as d:
+                plan = self.make_plan(kind)
+                res = delivery.check(plan, project_dir=d)
+            self.assertFalse(any('component source' in e for e in res['errors']), (kind, res['errors']))
+            self.assertTrue(any('must not be invented' in w for w in res['warnings']), (kind, res['warnings']))
+
+    def test_invalid_film_kind_is_error(self):
+        with tempfile.TemporaryDirectory() as d:
+            errs = self.errors(self.make_plan('animation'), d)
+        self.assertTrue(any('filmKind' in e for e in errs), errs)
+
 if __name__=='__main__':unittest.main()

@@ -15,7 +15,7 @@ node stills.mjs evidence/stills 1.5 5 8.5          # 一次会话批量出静帧
 node render.mjs --from 4 --to 7 --output renders/draft.mp4   # 局部草稿，不需要音频
 node render.mjs --silent-demo --output renders/technical-demo.mp4
 npm run preview                                     # 浏览器控制台：await seek(4) 或 playFilm()
-node cover.mjs                                      # 从 cover/cover.html 导出 3:4 / 4:3 / 16:9 封面（见 references/platforms/generic/product-video/cover.md）
+node cover.mjs                                      # 从 cover/cover.html 导出 3:4 / 4:3 / 16:9 封面（见 references/platforms/generic/motion-film/cover.md）
 ```
 
 正式导出：

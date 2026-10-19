@@ -1,13 +1,13 @@
 # 通用平台包（generic）
 
 **平台 ID**：`generic`
-**形式**：`generic/product-video`（产品宣传片 / 版本更新片）
+**形式**：`generic/motion-film`（产品宣传片 / 版本更新片）
 **规格单一事实来源**：`scripts/social_specs.json` → `platforms.generic`
 
 > `generic` 表示**不绑定具体投放平台的自有渠道成片**：官网首屏、社群、邮件、活动大屏、其他未纳入本 skill 的视频平台。
 > 因为它不绑定平台，所以**没有平台侧的硬规格**——画幅、时长、封面都由用途决定。取而代之的约束来自视频线自身的方法论（真实功能、原组件、方向先行、不套模板）。
 
-本平台包与微信、小红书两包**结构相同**，区别只在于它的方法论体量最大、资产最多：本形式自带一整套代码驱动的制作体系（起步工程、无头渲染、代码合成配乐、混音与证据、自动检查与审片），共 13 个分册分置在 `product-video/` 下。
+本平台包与微信、小红书两包**结构相同**，区别只在于它的方法论体量最大、资产最多：本形式自带一整套代码驱动的制作体系（起步工程、无头渲染、代码合成配乐、混音与证据、自动检查与审片），共 13 个分册分置在 `motion-film/` 下。
 
 ---
 
@@ -15,27 +15,27 @@
 
 | 形式 ID | 形态 | 交付物 | 完整方法论位置 |
 |---|---|---|---|
-| `generic/product-video` | 代码驱动的产品宣传片 / 版本更新片 | MP4 + 可复现工程 + 预览帧 + 3:4 / 4:3 / 16:9 封面 + 发布文案 | **`SKILL.md` →「通用平台 · 产品片」章节**（总纲）+ `product-video/` 13 个分册（细则） |
+| `generic/motion-film` | 代码驱动的影片：产品片 / 科普 / 数据 / 叙事，片型由内容定 | MP4 + 可复现工程 + 预览帧 + 3:4 / 4:3 / 16:9 封面 + 发布文案 | **`SKILL.md` →「通用平台 · 影片」章节**（总纲）+ `motion-film/` 13 个分册（细则） |
 
 **总纲与分册的分工**：`SKILL.md` 那一章是**流程与硬约束的主干**（7 步流程 + 硬约束 + 工具入口），保证主入口自身可用；分册是**每一步的细则**，按需加载。两者不重叠：主干不复制分册正文，分册不改写主干结论。
 
-## 2. 完整方法论（`product-video/`，13 个分册）
+## 2. 完整方法论（`motion-film/`，13 个分册）
 
 | 分册 | 什么时候读 | 讲什么 |
 |---|---|---|
-| [direction.md](product-video/direction.md) | **第 4 步，动手写代码之前** | 拆参考、提炼产品气质、沿不同的轴提三个方向、专属手法推导（「因为产品有 X、所以用 Y」）、反重复、画面规范、到每秒的镜头表 |
-| [story-and-copy.md](product-video/story-and-copy.md) | 第 4–5 步，写文案时 | 从更新清单到故事、中文文案说人话、标题的中英分工、文案试读、动作与停留、静帧审阅 |
-| [visual-vocabulary.md](product-video/visual-vocabulary.md) | 第 5 步，选手法时 | 按作用分组（开场与钩子 / 品牌与标志 / 舞台与背景 / 产品上镜 / 章节与文字 / 转场）的手法，写明表达什么、从哪里推导、怎么实现、何时不用 |
-| [component-pipeline.md](product-video/component-pipeline.md) | 第 3、5 步，接通组件时 | 从真实业务组件到可渲染画面：找原功能入口、补 provider、fixture 接口、原组件状态与动画、复用证据、确定性与时间线、构图裁切、链接处理 |
-| [starter.md](product-video/starter.md) | 第 2、5 步 | 起步工程的运行时结构（seek、GSAP 主时间轴、`onRender`、`onDrive`）、接入仓库、样式链、`plan.json` 字段 |
-| [repo-and-style.md](product-video/repo-and-style.md) | 第 3 步，调查产品时 | 更新事实与证据、原组件及设计依赖审计、默认样式的适用范围 |
-| [onboarding.md](product-video/onboarding.md) | **环境检查报缺项时才读** | 只针对被报告的那几个缺项安装，装完用 `--force` 复查 |
-| [audio-sourcing.md](product-video/audio-sourcing.md) | 第 6 步 | 音乐来源优先级（用户提供 → 本机可用生成模型 → 代码合成）、先编曲再合成、音效先找录音素材、对位方法、来源留存 |
-| [audio-and-qa.md](product-video/audio-and-qa.md) | 第 6–7 步 | 从「写了音效」到「真的听得见」、音乐让位、卡点、混音、自动检查、最终人工检查 |
-| [review.md](product-video/review.md) | 第 5、7 步 | 三个审片节点、联系表与转场条带、常见问题对照表、指标只是提示 |
-| [cover.md](product-video/cover.md) | 第 7 步，要发布时 | 3:4 / 4:3 / 16:9 三种比例的布局思路、选图、文案与导出 |
-| [case-study.md](product-video/case-study.md) | **出问题时查** | 原案例复盘：有效的做法、迭代中真正修过的问题、第二/第三个项目的经验、手法是怎么从产品推导出来的 |
-| [pipeline-notes.md](product-video/pipeline-notes.md) | 渲染 / 编码 / 音频踩坑时查 | 本机实测管线与环境坑（沙箱、headless 模式、zsh 通配符、loudnorm、首帧与安全边距自检等），已实跑验证 |
+| [direction.md](motion-film/direction.md) | **第 4 步，动手写代码之前** | 拆参考、提炼产品气质、沿不同的轴提三个方向、专属手法推导（「因为产品有 X、所以用 Y」）、反重复、画面规范、到每秒的镜头表 |
+| [story-and-copy.md](motion-film/story-and-copy.md) | 第 4–5 步，写文案时 | 从更新清单到故事、中文文案说人话、标题的中英分工、文案试读、动作与停留、静帧审阅 |
+| [visual-vocabulary.md](motion-film/visual-vocabulary.md) | 第 5 步，选手法时 | 按作用分组（开场与钩子 / 品牌与标志 / 舞台与背景 / 产品上镜 / 章节与文字 / 转场）的手法，写明表达什么、从哪里推导、怎么实现、何时不用 |
+| [component-pipeline.md](motion-film/component-pipeline.md) | 第 3、5 步，接通组件时 | 从真实业务组件到可渲染画面：找原功能入口、补 provider、fixture 接口、原组件状态与动画、复用证据、确定性与时间线、构图裁切、链接处理 |
+| [starter.md](motion-film/starter.md) | 第 2、5 步 | 起步工程的运行时结构（seek、GSAP 主时间轴、`onRender`、`onDrive`）、接入仓库、样式链、`plan.json` 字段 |
+| [repo-and-style.md](motion-film/repo-and-style.md) | 第 3 步，调查产品时 | 更新事实与证据、原组件及设计依赖审计、默认样式的适用范围 |
+| [onboarding.md](motion-film/onboarding.md) | **环境检查报缺项时才读** | 只针对被报告的那几个缺项安装，装完用 `--force` 复查 |
+| [audio-sourcing.md](motion-film/audio-sourcing.md) | 第 6 步 | 音乐来源优先级（用户提供 → 本机可用生成模型 → 代码合成）、先编曲再合成、音效先找录音素材、对位方法、来源留存 |
+| [audio-and-qa.md](motion-film/audio-and-qa.md) | 第 6–7 步 | 从「写了音效」到「真的听得见」、音乐让位、卡点、混音、自动检查、最终人工检查 |
+| [review.md](motion-film/review.md) | 第 5、7 步 | 三个审片节点、联系表与转场条带、常见问题对照表、指标只是提示 |
+| [cover.md](motion-film/cover.md) | 第 7 步，要发布时 | 3:4 / 4:3 / 16:9 三种比例的布局思路、选图、文案与导出 |
+| [case-study.md](motion-film/case-study.md) | **出问题时查** | 原案例复盘：有效的做法、迭代中真正修过的问题、第二/第三个项目的经验、手法是怎么从产品推导出来的 |
+| [pipeline-notes.md](motion-film/pipeline-notes.md) | 渲染 / 编码 / 音频踩坑时查 | 本机实测管线与环境坑（沙箱、headless 模式、zsh 通配符、loudnorm、首帧与安全边距自检等），已实跑验证 |
 
 ## 3. 工程与资产
 
@@ -77,9 +77,9 @@
 | 取材、方向、渲染、编码、自检纪律 | `references/core/pipeline.md` |
 | 多平台同做时的口径与素材复用 | `references/core/cross-platform.md` |
 | 两级路由与执行顺序 | `references/core/routing.md` |
-| 本形式兜底参数（机器可读） | `scripts/social_specs.json` → `platforms.generic.forms.product-video` |
-| **总纲（7 步流程 + 硬约束）** | `SKILL.md` →「通用平台 · 产品片」 |
-| **细则（13 个分册）** | 本目录 `product-video/` |
+| 本形式兜底参数（机器可读） | `scripts/social_specs.json` → `platforms.generic.forms.motion-film` |
+| **总纲（7 步流程 + 硬约束）** | `SKILL.md` →「通用平台 · 影片」 |
+| **细则（13 个分册）** | 本目录 `motion-film/` |
 
 ## 6. 自检
 
@@ -94,10 +94,10 @@ python3 $SKILL/scripts/video-line/check_delivery.py <video-dir>/plan.json \
 
 # ② 平台线兜底自检（弱）：交付文件存在、可探测、时长 > 0
 python3 $SKILL/scripts/check_social_delivery.py --project <content-dir> \
-  --forms generic/product-video
+  --forms generic/motion-film
 
 # 看规格
-python3 $SKILL/scripts/check_social_delivery.py --print-specs --form generic/product-video
+python3 $SKILL/scripts/check_social_delivery.py --print-specs --form generic/motion-film
 ```
 
 `check_delivery.py` 的输出里有一项 `limits`，逐条写明它**不**证明什么（不做主张的语义核实、不做画面品味判断、不做听感与音画同步判断、节奏数字只是"该去看哪一段"的提示）。**不要把它的 `ok: true` 当成成片已验收。**

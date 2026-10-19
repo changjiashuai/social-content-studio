@@ -2,11 +2,11 @@
 
 **一个自带全部能力的独立 skill。** 把一次内容生产按 **「先选平台，再选内容形式」** 的两级结构组织起来，覆盖微信、小红书与自有渠道，并按平台渐进扩展。
 
-- 版本：**1.3.0**
+- 版本：**1.4.0**
 - 作者：**changjiashuai**
 - 授权：**AGPL-3.0**（见 [LICENSE](LICENSE)；包内全部内容均为作者原创，无第三方组件，见 [references/THIRD-PARTY.md](references/THIRD-PARTY.md)）
 - 基线：**`references/BASELINE.md`**（能力清单 + 校验命令 + 基线指纹 + 扩展契约）
-- 依赖：**无外部 skill 依赖**。产品片的 18 个方法论分册、6 个工程脚本、起步工程、默认样式、手法样例、配乐示例与原创音效全部原生内置，可独立分发。
+- 依赖：**无外部 skill 依赖**。影片的 18 个方法论分册、6 个工程脚本、起步工程、默认样式、手法样例、配乐示例与原创音效全部原生内置，可独立分发。
 
 ---
 
@@ -15,22 +15,22 @@
 | 能力 | 形式 ID | 位置 |
 |---|---|---|
 | **两级路由（先平台后形式，均可多选）** | — | `references/core/routing.md` |
-| **代码驱动的产品宣传片 / 版本更新片** | `generic/product-video` | `SKILL.md` →「通用平台 · 产品片」（总纲）+ `references/platforms/generic/product-video/`（18 个分册） |
-| **风格推导**（给主题/数据后自行推出风格与叙事） | `generic/product-video` | `product-video/style-derivation.md` + `rhythm-brief.md` |
-| **只有网址也能开工**（三级证据源，不假造界面） | `generic/product-video` | `product-video/web-first.md` + `research-brief.md` |
-| **内部溯源**（上屏数字底账，六形式共用） | 全部形式 | `evidence/FACTS.md` + `product-video/provenance.md` |
+| **代码驱动的影片**（产品片 / 科普 / 数据 / 叙事，片型由内容定） | `generic/motion-film` | `SKILL.md` →「通用平台 · 影片」（总纲）+ `references/platforms/generic/motion-film/`（18 个分册） |
+| **风格推导**（给主题/数据后自行推出风格与叙事） | `generic/motion-film` | `motion-film/style-derivation.md` + `rhythm-brief.md` |
+| **只有网址也能开工**（三级证据源，不假造界面） | `generic/motion-film` | `motion-film/web-first.md` + `research-brief.md` |
+| **内部溯源**（上屏数字底账，六形式共用） | 全部形式 | `evidence/FACTS.md` + `motion-film/provenance.md` |
 | **微信图文（图片消息 / 小绿书）** | `wechat/image-text` | `references/platforms/wechat/image-text.md` |
 | **公众号长文** | `wechat/mp-article` | `references/platforms/wechat/mp-article.md` |
 | **视频号视频** | `wechat/channels` | `references/platforms/wechat/channels.md` |
 | **小红书图文笔记** | `xiaohongshu/image-text` | `references/platforms/xiaohongshu/image-text.md` |
 | **小红书视频笔记** | `xiaohongshu/video` | `references/platforms/xiaohongshu/video.md` |
-| 产品取材、`DIRECTION.md`、镜头表、专属手法推导 | 全部形式共用 | `SKILL.md` 产品片第 1–7 步 + `references/core/pipeline.md` |
-| 工程初始化 / 环境预检 / 无头渲染 / 编码 / 混音 / 结构自检 | `generic/product-video` | `scripts/video-line/`（6 个脚本） |
-| 起步工程 + 默认样式 + 手法样例 + 配乐示例 + 11 个原创音效 | `generic/product-video` | `assets/platforms/generic/` |
+| 产品取材、`DIRECTION.md`、镜头表、专属手法推导 | 全部形式共用 | `SKILL.md` 影片第 1–7 步 + `references/core/pipeline.md` |
+| 工程初始化 / 环境预检 / 无头渲染 / 编码 / 混音 / 结构自检 | `generic/motion-film` | `scripts/video-line/`（6 个脚本） |
+| 起步工程 + 默认样式 + 手法样例 + 配乐示例 + 11 个原创音效 | `generic/motion-film` | `assets/platforms/generic/` |
 | 跨平台口径一致性与素材复用 | — | `references/core/cross-platform.md` |
 | 规格机器校验（尺寸 / 比例 / 字数 / 体积 / 禁用项 / 风险词） | — | `scripts/check_social_delivery.py` + `scripts/social_specs.json` |
 | **`plan.json` 契约校验**（形式登记 / 事实源 / 执行顺序 / 先静后动） | — | `check_social_delivery.py --check-plan` |
-| **投放预设**（竖版 9:16 / 横版 6:7 封面的画幅与首帧要求） | `generic/product-video` | `video-line/init_project.py --preset` |
+| **投放预设**（竖版 9:16 / 横版 6:7 封面的画幅与首帧要求） | `generic/motion-film` | `video-line/init_project.py --preset` |
 | 模板画布尺寸探测 + 离线回归 + 集成回归 | — | `scripts/render_social_assets.mjs --probe` + `tests/` |
 | 平台接入契约（渐进扩展） | — | `references/core/platform-schema.md` |
 
@@ -46,7 +46,7 @@
 2. **每个平台要哪种形式**：
    - 微信 → `1 图文（图片+文案）` / `2 公众号（长文）` / `3 视频号（视频）`
    - 小红书 → `1 图文笔记` / `2 视频笔记`
-   - 通用 → `1 产品片（宣传片 / 版本更新片）`
+   - 通用 → `1 影片`（片型由内容定：产品片 / 科普 / 数据 / 叙事）
 
 多选时按「**事实源 → 静态切片 → 动态切片**」串行执行（先长后短、先静后动），保证各端口径一致。
 
@@ -54,7 +54,7 @@
 
 ## 2.1 使用示例
 
-**核心变化（v1.2.0 起）：你不用先选风格。** 给出主题、数据或更新内容，它会按 [风格推导](references/platforms/generic/product-video/style-derivation.md) 自行推出适合的表达方式，并说明理由。
+**核心变化（v1.2.0 起）：你不用先选风格。** 给出主题、数据或更新内容，它会按 [风格推导](references/platforms/generic/motion-film/style-derivation.md) 自行推出适合的表达方式，并说明理由。
 
 ### 示例 A · 只给数据 → 自动推导「证据驱动」
 
@@ -110,7 +110,7 @@ python3 $SKILL/scripts/video-line/init_project.py --output film-ch --style defau
 
 ### 示例 F · 想核对某个数字的来源
 
-**FACTS 是内控底账，默认不展示**（见 [内部溯源](references/platforms/generic/product-video/provenance.md)）。只在两种情况出现：
+**FACTS 是内控底账，默认不展示**（见 [内部溯源](references/platforms/generic/motion-film/provenance.md)）。只在两种情况出现：
 
 - **你主动问**：「那个 8.9% 哪来的？」→ 只回答你问的那一条。
 - **证据链断裂** → 用一句话说明结论，不贴整张表：「『每天省 40 分钟』来自 6 人访谈自报，已标为示意，片子里没有配『实测』字样。」
@@ -119,7 +119,7 @@ python3 $SKILL/scripts/video-line/init_project.py --output film-ch --style defau
 
 > 帮我给 https://example.com 做一支 40 秒的产品片。
 
-**它先判证据级别 = web（C 级）**，然后按 [网址优先](references/platforms/generic/product-video/web-first.md) 去挖官网、文档站、定价页、changelog，并**先写 `RESEARCH.md`**（[调研摘要](references/platforms/generic/product-video/research-brief.md)）：
+**它先判证据级别 = web（C 级）**，然后按 [网址优先](references/platforms/generic/motion-film/web-first.md) 去挖官网、文档站、定价页、changelog，并**先写 `RESEARCH.md`**（[调研摘要](references/platforms/generic/motion-film/research-brief.md)）：
 
 ```markdown
 - 证据级别：web（C 级）
@@ -162,7 +162,7 @@ python3 $SKILL/scripts/video-line/init_project.py --output film-ch --style defau
 
 ```
 social-content-studio/
-├── SKILL.md                        # 主入口：两级路由 + 产品片总纲 + 平台包要点 + 跨平台约束 + 工具入口
+├── SKILL.md                        # 主入口：两级路由 + 影片总纲 + 平台包要点 + 跨平台约束 + 工具入口
 ├── README.md                       # 本文件
 ├── LICENSE                         # AGPL-3.0
 ├── agents/openai.yaml              # Agent 界面描述
@@ -178,7 +178,7 @@ social-content-studio/
 │   └── platforms/                  # 平台包（彼此独立）
 │       ├── wechat/{PLATFORM,specs,image-text,mp-article,channels}.md
 │       ├── xiaohongshu/{PLATFORM,specs,image-text,video}.md
-│       └── generic/{PLATFORM,specs}.md + product-video/（18 个分册）
+│       └── generic/{PLATFORM,specs}.md + motion-film/（18 个分册）
 ├── assets/platforms/
 │   ├── wechat/…                    # 5 套模板（图卡 / 正文片段 / 头条封面 / 次条封面 / 视频号封面）
 │   ├── xiaohongshu/…               # 2 套模板（图集页 / 视频封面）
@@ -187,7 +187,7 @@ social-content-studio/
 │   ├── social_specs.json           # ★ 规格单一事实来源（platforms.<平台>.forms.<形式>）
 │   ├── check_social_delivery.py    # 平台线自检（规格校验 + plan.json 契约 + 内部溯源分级）
 │   ├── render_social_assets.mjs    # 无头 Chrome 批量导出 + 模板尺寸探测
-│   └── video-line/                 # 产品片工程脚本（init_project / check_environment / sfx_landmarks /
+│   └── video-line/                 # 影片工程脚本（init_project / check_environment / sfx_landmarks /
 │                                   #   mix_audio / make_sfx / check_delivery）
 └── tests/
     ├── test_check_social_delivery.py    # 平台线回归
@@ -199,13 +199,13 @@ social-content-studio/
 
 ## 4. 组织方式的三个原则
 
-1. **产品片是原生能力，不是外挂。**
-   总纲（7 步流程 + 硬约束 + 工程入口）在 `SKILL.md`，**细则是 `references/platforms/generic/product-video/` 下的 18 个分册**。两者分工明确：总纲不复制分册正文，分册不改写总纲结论，因此不存在"两份正文不一致"。
+1. **影片是原生能力，不是外挂。**
+   总纲（7 步流程 + 硬约束 + 工程入口）在 `SKILL.md`，**细则是 `references/platforms/generic/motion-film/` 下的 18 个分册**。两者分工明确：总纲不复制分册正文，分册不改写总纲结论，因此不存在"两份正文不一致"。
 
 2. **共用底座上提，平台专属下沉。**
    `references/core/` 放平台无关的东西（路由、管线、跨平台一致性、接入契约）；
    `references/platforms/<平台>/` 与 `assets/platforms/<平台>/` 放平台专属的东西（规格、形式流程、红线、模板、资产）。
-   所以加一个平台只需加一个平台包 + 一份模板目录 + 规格 JSON 一个节点 + 自检脚本一个函数，**产品片体系与其他平台包永远不动**。
+   所以加一个平台只需加一个平台包 + 一份模板目录 + 规格 JSON 一个节点 + 自检脚本一个函数，**影片体系与其他平台包永远不动**。
 
 3. **规格只有一个事实来源。**
    所有平台硬参数集中在 `scripts/social_specs.json`。模板 HTML 的画布尺寸、自检脚本的阈值都从它读——
@@ -225,7 +225,7 @@ social-content-studio/
 | 4 | 自检脚本加一个检查函数并登记进 `FORM_CHECKS` | `scripts/check_social_delivery.py` |
 | 5 | 路由表加一行 | `references/core/routing.md` 第二级 + `SKILL.md` 平台表 |
 
-新增平台**不需要**改 `core/` 的语义、不需要改其他平台包、不需要改产品片体系、不需要新建渲染脚本。跑 [BASELINE.md](references/BASELINE.md) §3 的校验命令全绿即可交付。
+新增平台**不需要**改 `core/` 的语义、不需要改其他平台包、不需要改影片体系、不需要新建渲染脚本。跑 [BASELINE.md](references/BASELINE.md) §3 的校验命令全绿即可交付。
 
 ---
 
@@ -249,7 +249,7 @@ SKILL=~/.workbuddy/skills/social-content-studio
 # 0) 先做两级路由（平台 → 形式），写入 plan.json，再校验契约
 python3 $SKILL/scripts/check_social_delivery.py --check-plan <content-dir>/plan.json
 
-# ── 产品片 ──（--preset: generic / xhs-vertical / channels-horizontal / channels-vertical）
+# ── 影片 ──（--preset: generic / xhs-vertical / channels-horizontal / channels-vertical）
 python3 $SKILL/scripts/video-line/init_project.py --output <video-dir> --style repo --repo <repo-dir>
 python3 $SKILL/scripts/video-line/check_environment.py --project <video-dir> --engine browser
 python3 $SKILL/scripts/video-line/check_delivery.py <video-dir>/plan.json \
@@ -272,10 +272,11 @@ python3 -m unittest discover -s $SKILL/tests
 
 | 版本 | 说明 |
 |---|---|
+| **v1.4.0** | **影片形式通用化：片型由内容决定，不再一律做成产品片。** 形式改名为 `generic/motion-film`（目录同步），**旧 ID 不再兼容**；新增 `filmKind`（`product` / `evidence` / `explainer` / `story`），`check_delivery.py` 按片型分派必备项；**不声明时等于 `product`**，默认严格度不变；任何片型都不许假造界面。回归测试 122 → 131 项。 |
 | **v1.3.0** | **补上「只给网址」这条最常见路径。** 新增 `web-first.md`（A/B/C 三级证据源 + 公开来源清单 + 三条硬线）与 `research-brief.md`（`RESEARCH.md` 四问契约，B/C 级必写）；`direction.md` 加「证据级别 → 允许的信息形状」约束；`check_delivery.py` 新增 `evidenceLevel` 与 `research_checks`（缺调研摘要阻断，原组件要求在非仓库级别降级为警告但不放开伪造）。分册 15 → 18，回归测试 116 → 122 项。 |
 | **v1.2.0** | **风格从「挑」改为「推导」。** 新增 `style-derivation.md`（8 信息形状 → 10 运动语言 → 5 性格滑块 → 主构成 → 5 不变量 + 3 禁令）与 `rhythm-brief.md`（路线 / 能量曲线 / 密度 / 死时间）；`direction.md` 加定标杆、改为推导、反重复改六项四差异；`review.md` 加独立审片与「哪段走神」；新增内部溯源契约（FACTS 底账，六形式共用，**不随片交付**）；`plan.json` 加 `styleDerivation` 并校验。回归测试 98 → 116 项。README 新增「§2.1 使用示例」六个场景与改前改后对照。 |
 | **v1.1.0** | **把文档纪律变成机器守卫**（能力面不变，不新增平台）。`--check-plan` 校验 `plan.json` 契约；`uncertainty` 升级为 `max` + `safeMax` + 原文的可执行约定，落在稳妥与官方之间报 WARN；`init_project.py --preset` 提供 `generic` / `xhs-vertical` / `channels-horizontal` / `channels-vertical`；ffprobe 失败不再静默；新增 GitHub Actions 回归；SKILL.md 平台要点改为指向 `specs.md` 单一事实源。回归测试 73 → 98 项。 |
-| **v1.0.3** | **补充第三方名称的使用说明**：`references/THIRD-PARTY.md` 新增 §2.3，逐类列出包内出现的第三方名称（案例对象 / 外部运行时依赖 / 素材来源标注 / 本机他 skill 名）及其性质，说明它们属**叙述性使用**、不是随包分发的第三方组件，并写明案例复盘保留产品实名的理由。**案例对象名一处未动**，仅新增说明。同版修正 `product-video/audio-and-qa.md` 内置音效目录的链接为包内相对路径（原写法为包根相对路径，在按文件位置解析的渲染器下会断链）。 |
+| **v1.0.3** | **补充第三方名称的使用说明**：`references/THIRD-PARTY.md` 新增 §2.3，逐类列出包内出现的第三方名称（案例对象 / 外部运行时依赖 / 素材来源标注 / 本机他 skill 名）及其性质，说明它们属**叙述性使用**、不是随包分发的第三方组件，并写明案例复盘保留产品实名的理由。**案例对象名一处未动**，仅新增说明。同版修正 `motion-film/audio-and-qa.md` 内置音效目录的链接为包内相对路径（原写法为包根相对路径，在按文件位置解析的渲染器下会断链）。 |
 | **v1.0.2** | **起步工程改为完全原创**：`assets/platforms/generic/starter/` 的 29 个文件（运行时 `engine.js` / `film-store.js` / `client.jsx` / `film.jsx`、`kit/` 四件、`shots/` 两件、`presentations.jsx`、`product-context.jsx`、`fixtures/api.js`、`film.css`、六个工程脚本、`integration.config.mjs`、`package.json`、`adapters/` 四件）按同一对外契约重新实现。该目录由第三方代码改为本包原创，**包内自此没有任何第三方组件**；`NOTICE.md` 的版权行改为 changjiashuai。对外契约（文件名、导出名、DOM 契约、CLI 参数、`window.*` API）全部保持不变，既有影片工程无需改动。 |
 | **v1.0.1** | **默认样式改为完全原创**：`fallback/` 的 `tokens.css` 与 `primitives.jsx` 重写为「纸墨」样式（纸白 / 墨黑双色调，纸面 + 纸叠结构，新增 `ghost` 按钮与 `accent` 徽标变体），随包两张预览图按新样式重新渲染。该目录由第三方 BSL 1.1 组件改为本包原创 AGPL-3.0，**包内自此没有任何限制商业使用的组件**。对外契约（类名、`--film-*` 变量名、四个组件导出名）保持不变，既有影片工程无需改动。 |
 | **v1.0.0** | **首个独立发布版**。两级路由（先平台后形式，均可多选）＋ 3 个平台包 6 个形式：微信（图文 / 公众号长文 / 视频号）、小红书（图文笔记 / 视频笔记）、通用（产品片）。产品片体系完整内置：13 个方法论分册、6 个工程脚本、起步工程、默认样式、6 个手法样例、2 个配乐示例、11 个原创音效；规格单一事实来源 `social_specs.json`；平台线自检（含公众号 HTML 白名单体检与小红书风险词扫描）+ 产品片结构与媒体自检；7 套模板 + 模板画布尺寸探测；平台线 + 视频线离线回归测试；基线文档与平台接入契约。**无外部 skill 依赖。** |
