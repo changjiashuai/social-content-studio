@@ -2,7 +2,7 @@
 
 **一个自带全部能力的独立 skill。** 把一次内容生产按 **「先选平台，再选内容形式」** 的两级结构组织起来，覆盖微信、小红书、X 与自有渠道，并按平台渐进扩展。
 
-- 版本：**1.6.0**
+- 版本：**1.7.0**
 - 作者：**changjiashuai**
 - 授权：**AGPL-3.0**（见 [LICENSE](LICENSE)；包内全部内容均为作者原创，无第三方组件，见 [references/THIRD-PARTY.md](references/THIRD-PARTY.md)）
 - 基线：**`references/BASELINE.md`**（能力清单 + 校验命令 + 基线指纹 + 扩展契约）
@@ -25,7 +25,7 @@
 | **视频号视频** | `wechat/channels` | `references/platforms/wechat/channels.md` |
 | **小红书图文笔记** | `xiaohongshu/image-text` | `references/platforms/xiaohongshu/image-text.md` |
 | **小红书视频笔记** | `xiaohongshu/video` | `references/platforms/xiaohongshu/video.md` |
-| **X 文章（长文）** | `x/article` | `references/platforms/x/PLATFORM.md` + `article.md` |
+| **X 文章（长文）** | `x/article` | `references/platforms/x/PLATFORM.md` + `article.md`（含官方写作八条与发布后 72 小时） |
 | 产品取材、`DIRECTION.md`、镜头表、专属手法推导 | 全部形式共用 | `SKILL.md` 影片第 1–7 步 + `references/core/pipeline.md` |
 | 工程初始化 / 环境预检 / 无头渲染 / 编码 / 混音 / 结构自检 | `generic/motion-film` | `scripts/video-line/`（6 个脚本） |
 | 起步工程 + 默认样式 + 手法样例 + 配乐示例 + 11 个原创音效 | `generic/motion-film` | `assets/platforms/generic/` |
@@ -276,6 +276,7 @@ python3 -m unittest discover -s $SKILL/tests
 
 | 版本 | 说明 |
 |---|---|
+| **v1.7.0** | **X 平台按官方指南校正。** 依据 [@XCreators 官方文章指南](https://x.com/XCreators/status/2011957172821737574)：Premium 门槛升级为官方来源；新增官方**写作八条**、**发布后 72 小时**增长动作与**订阅者可见**变现路径；修正「粗体 ≤10 处」与官方「几乎每节都加粗洞察」的冲突（以官方为准）；删除无官方依据的话题标签建议；`meta.json` 增 `purpose` / `closeType` 并纳入校验。回归测试 153 → 161 项。 |
 | **v1.6.0** | **新增 X 平台包（`x/article`）。** 明确区分「长帖（约 2.5 万字符、无分节）」与「Article（约 10 万字符、有标题与分节）」；`specs.md` 逐条带来源分级，正文上限标 `uncertainty` + 稳妥值 75000；新增 `check_x_article`（字数/封面 16:9/分节/配图/风险词）。顺带修复 `uncertain_max` 不认 `maxChars` 的崩溃、风险词扫描漏扫 `intro`。回归测试 137 → 153 项。 |
 | **v1.5.0** | **补上配音能力。** 新增 `voiceover.md` 与 `make_voiceover.py`：用户未指定时优先 **edge-tts**（免费、无需 key），按片子气质选音色并记录理由；edge-tts 不可用再找其他免费 TTS；**都没有则停下来问用户**。`say` / SAPI / eSpeak 等系统机器音**一律禁用**——没有配音优于机器音。环境预检增加 TTS 探测但不阻塞渲染。分册 18 → 19，回归测试 131 → 137 项。 |
 | **v1.4.0** | **影片形式通用化：片型由内容决定，不再一律做成产品片。** 形式改名为 `generic/motion-film`（目录同步），**旧 ID 不再兼容**；新增 `filmKind`（`product` / `evidence` / `explainer` / `story`），`check_delivery.py` 按片型分派必备项；**不声明时等于 `product`**，默认严格度不变；任何片型都不许假造界面。回归测试 122 → 131 项。 |

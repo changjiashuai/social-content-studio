@@ -6,7 +6,7 @@
 
 | 标记 | 含义 |
 |---|---|
-| `x_official` | X 官方公告/帮助中心，可靠性最高 |
+| `x_official` | X 官方公告/帮助中心/官方账号指南，可靠性最高。<br>本文档主要依据 [@XCreators「The ultimate guide to Articles on X」](https://x.com/XCreators/status/2011957172821737574)（2026-01-16） |
 | `x_third_party` | 第三方汇总与实测，**可能与实际有出入**，一律带 `uncertainty` |
 | `practice` | 本包实务经验，不是平台规则 |
 
@@ -44,14 +44,34 @@
 | 嵌入帖子 | ✅ | 引用某条 X 帖作为证据 |
 | 外部链接 | ✅ | 卡片预览依赖目标页的 OG 标签 |
 | 自定义 HTML / CSS | ❌ | 只能通过编辑器可视化排版 |
+| 粗体 | ✅ | 官方建议**几乎每节都加粗关键洞察**（用于扫读，不是克制使用的装饰） |
+| 小标题 | ✅ | 官方建议**每 3–5 段**一个小标题 |
+| 段落长度 | — | 官方建议**每段 2–4 行**为上限 |
 
 ### 1.4 账号与发布
 
 | 项 | 值 | 来源 | 说明 |
 |---|---|---|---|
-| 发布权限 | 需 **Premium 级** 订阅（非 Premium+） | `x_third_party` | 早期资料说 Premium+，现已更正为 Premium |
+| 发布权限 | **所有 Premium 订阅者**均可发布 | `x_official` | 官方原话：「We've recently expanded access to **all Premium subscribers**」；不需要 Premium+ |
 | 编辑已发布文章 | 支持（与帖子编辑机制类似） | `x_third_party` | 编辑权益与订阅等级相关 |
 | 文章列表 | 个人主页有独立 Articles 标签页 | `x_third_party` | 便于长期检索 |
+
+### 1.5 发布形态（免费 / 订阅者可见）
+
+官方明确支持两种可见范围：
+
+| 形态 | 发布路径 | 用途 |
+|---|---|---|
+| 公开 Article | Publish | 增长与传播，主力形态 |
+| **订阅者可见** | Publish → 「Choose your audience」选 **Subscribers** → 再次 Publish | 订阅变现 |
+
+订阅者可见文章在**非订阅者**推广时用付费墙链接：
+
+```
+https://x.com/YOURUSERNAME/creator-subscriptions/subscribe
+```
+
+订阅资格在 **Creator Studio** 查看。来源：`x_official`。
 
 ---
 

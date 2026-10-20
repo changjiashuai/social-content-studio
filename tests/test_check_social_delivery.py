@@ -725,6 +725,80 @@ class TestUncertaintySpecs(Base):
         self.assertIn("官方口径不一项", out)
 
 
+class TestXArticleOfficialGuide(Base):
+    """官方八条里可机器校验的部分：先定目的、强收尾、加粗洞察、可见范围。"""
+
+    FORM = "x/article"
+    SUB = "x/article"
+
+    def make(self, extra=None, drop=()):
+        d = os.path.join(self.export, self.SUB)
+        os.makedirs(d, exist_ok=True)
+        write_text(os.path.join(d, "article.md"),
+                   "# t\n\n## a\n\n内容\n\n## b\n\n内容\n")
+        write_png(os.path.join(d, "cover-169.png"), 1200, 675)
+        meta = {"title": "标题", "intro": "首段说清结论。", "bodyChars": 100,
+                "sections": ["a", "b"],
+                "purpose": "think: 这类方案有隐藏成本; do: 检查迁移计划",
+                "closeType": "question"}
+        for k in drop:
+            meta.pop(k, None)
+        if extra:
+            meta.update(extra)
+        write_json(os.path.join(d, "meta.json"), meta)
+
+    def test_all_official_fields_present_passes_quietly(self):
+        self.make()
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("写作目的已声明", out)
+        self.assertIn("收尾类型 question", out)
+
+    def test_missing_purpose_warns(self):
+        self.make(drop=("purpose",))
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("meta.purpose 未声明", out)
+
+    def test_missing_close_type_warns(self):
+        self.make(drop=("closeType",))
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("meta.closeType 未声明", out)
+
+    def test_non_official_close_type_warns(self):
+        """官方只给三种收法，其他值要提示。"""
+        self.make(extra={"closeType": "fade-out"})
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("不是官方推荐的三种收法", out)
+
+    def test_zero_bold_insights_warns(self):
+        self.make(extra={"boldInsights": 0})
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("几乎每一节都加粗关键洞察", out)
+
+    def test_bold_insights_positive_is_quiet(self):
+        self.make(extra={"boldInsights": 5})
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 0, out)
+        self.assertNotIn("boldInsights 为 0", out)
+
+    def test_subscribers_audience_is_accepted(self):
+        """订阅者可见是官方支持的形态。"""
+        self.make(extra={"audience": "subscribers"})
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 0, out)
+        self.assertNotIn("应为 public 或 subscribers", out)
+
+    def test_invalid_audience_warns(self):
+        self.make(extra={"audience": "everyone"})
+        rc, out = self.run_check(self.FORM)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("应为 public 或 subscribers", out)
+
+
 # ───────────────────────────────────── plan.json 契约
 
 class TestCheckPlan(Base):

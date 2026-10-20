@@ -1154,6 +1154,34 @@ def check_x_article(specs: dict, export_root: str, rep: Report):
         elif isinstance(sections, list):
             rep.add(ch, "分节", WARN, "meta.sections 为空，结构可能过平")
 
+        # 官方八条里的两条硬要求：先定目的、强收尾
+        purpose = (meta.get("purpose") or "").strip() if isinstance(meta.get("purpose"), str) else ""
+        if not purpose:
+            rep.add(ch, "写作目的", WARN,
+                    "meta.purpose 未声明 —— 官方第①条要求先说清读者读完要 think / feel / do 什么")
+        else:
+            rep.add(ch, "写作目的", OK, f"写作目的已声明（{len(purpose)} 字）")
+
+        close = meta.get("closeType")
+        if close is None:
+            rep.add(ch, "收尾", WARN,
+                    "meta.closeType 未声明 —— 官方第⑧条要求强收尾（summary / question / action）")
+        elif close not in ("summary", "question", "action"):
+            rep.add(ch, "收尾", WARN,
+                    f"meta.closeType {close!r} 不是官方推荐的三种收法（summary / question / action）")
+        else:
+            rep.add(ch, "收尾", OK, f"收尾类型 {close}")
+
+        # 官方第③条：几乎每节都要加粗关键洞察
+        if meta.get("boldInsights") == 0:
+            rep.add(ch, "加粗洞察", WARN,
+                    "meta.boldInsights 为 0 —— 官方建议几乎每一节都加粗关键洞察，方便扫读")
+
+        aud = meta.get("audience")
+        if aud is not None and aud not in ("public", "subscribers"):
+            rep.add(ch, "可见范围", WARN,
+                    f"meta.audience {aud!r} 应为 public 或 subscribers")
+
     texts = collect_banned_texts(d, meta if isinstance(meta, dict) else None)
     for src, txt in texts:
         check_banned_text(txt, spec, ch, "风险词", rep, source_name=src)

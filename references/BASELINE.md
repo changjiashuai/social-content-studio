@@ -1,6 +1,6 @@
 # 基线 BASELINE
 
-本文件是 `social-content-studio` **v1.6.0 的基线快照**：把"已经跑通的能力"在平台化结构中固定下来，
+本文件是 `social-content-studio` **v1.7.0 的基线快照**：把"已经跑通的能力"在平台化结构中固定下来，
 明确哪些是共用底座、哪些是平台专属、规格版本是什么、怎么校验。
 **后续每新增一个平台，都在此基线上叠加；基线本身只增不改。**
 
@@ -16,7 +16,7 @@
 
 ---
 
-## 2. 基线组成（v1.6.0，本版冻结）
+## 2. 基线组成（v1.7.0，本版冻结）
 
 | 层 | 位置 | 内容 | 说明 |
 |---|---|---|---|
@@ -108,7 +108,7 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 
 ---
 
-## 4. 基线指纹（v1.6.0）
+## 4. 基线指纹（v1.7.0）
 
 用于核对基线是否被改动。完整 SHA-256 可用 `shasum -a 256 <file>` 复算（下表取前 16 位）。
 二进制资产（音效 WAV、预览 PNG）、`LICENSE` 与 `BASELINE.md` 自身不入表（自身无法自洽）。
@@ -118,8 +118,8 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 | 文件 | SHA-256 前 16 位 |
 |---|---|
 | `.gitignore` | `6e0cb83e04db8cd4` |
-| `README.md` | `53fd6d479ec9fa52` |
-| `SKILL.md` | `dd1af9cb1135b199` |
+| `README.md` | `1a55792f9bec7d5c` |
+| `SKILL.md` | `e29a8b08a45d070d` |
 | `agents/openai.yaml` | `ecbfa04409b23ee2` |
 | `.github/workflows/regression.yml` | `99cf617225cb1ab7` |
 
@@ -156,8 +156,8 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 | `references/platforms/xiaohongshu/image-text.md` | `aa1512be5aca90e8` |
 | `references/platforms/xiaohongshu/specs.md` | `78396ca6430be1c6` |
 | `references/platforms/x/PLATFORM.md` | `5ea9be2f4ae79f6d` |
-| `references/platforms/x/specs.md` | `15772ee1bdda7c85` |
-| `references/platforms/x/article.md` | `a285bf820871d527` |
+| `references/platforms/x/specs.md` | `c12db7c2d974e67d` |
+| `references/platforms/x/article.md` | `789cd940e797a107` |
 | `references/platforms/xiaohongshu/video.md` | `503b6b518ec2f991` |
 
 ### 4.6 平台包 · 通用（影片）
@@ -191,7 +191,7 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 
 | 文件 | SHA-256 前 16 位 |
 |---|---|
-| `scripts/check_social_delivery.py` | `f63fbdaf119c55b6` |
+| `scripts/check_social_delivery.py` | `8342f1df5d057ee3` |
 | `scripts/render_social_assets.mjs` | `93c51823b86a0ddd` |
 | `scripts/social_specs.json` | `bc245c26b603c68b` |
 
@@ -211,7 +211,7 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 | 文件 | SHA-256 前 16 位 |
 |---|---|
 | `tests/integration.mjs` | `f717acf428b04b08` |
-| `tests/test_check_social_delivery.py` | `fe75e1af1a8bfe57` |
+| `tests/test_check_social_delivery.py` | `9c3a9a248537e0b2` |
 | `tests/test_video_line_regressions.py` | `ee0333c604ee4036` |
 
 ### 4.10 平台模板 · 微信
@@ -337,6 +337,7 @@ node $SKILL/tests/integration.mjs --modules <video-dir>/node_modules
 
 | 版本 | 说明 |
 |---|---|
+| **v1.7.0** | **X 平台按官方指南校正。** 依据 [@XCreators《The ultimate guide to Articles on X》](https://x.com/XCreators/status/2011957172821737574)（2026-01-16）：①Premium 门槛由 `x_third_party` 升为 `x_official` 并去掉 uncertainty；②新增「发布形态」——公开 / 订阅者可见（Publish → Choose your audience → Subscribers）与付费墙链接格式；③`article.md` 新增官方**写作八条**（先定目的、标题与钩子、可扫读排版、可辨认声音、展示而非陈述、无情删除、配图格式、强收尾），并修正此前「粗体全文 ≤10 处」与官方「几乎每节都加粗关键洞察」的冲突——以官方为准；④新增「发布后 72 小时」（预热、24–72h 置顶、拆线程、回复早期读者、复活旧文）与「订阅变现」；⑤删除凭经验写的「话题标签 1–2 个」——官方指导通篇未提标签；⑥`meta.json` 新增 `purpose` / `closeType` / `audience` / `boldInsights`，`check_x_article` 校验前两者与可见范围。回归测试 153 → 161 项。 |
 | **v1.6.0** | **新增 X 平台包（`x/article`）。** ①`references/platforms/x/`：`PLATFORM.md` 区分「长帖（约 2.5 万字符、无分节）」与「Article（约 10 万字符、有标题与分节）」并给平台红线；`specs.md` 逐条带来源分级（`x_official` / `x_third_party` / `practice`）；`article.md` 给流程、首段即摘要、格式使用纪律与 `meta.json` 契约。②`social_specs.json` 新增 `platforms.x.forms.article`，正文上限标 `uncertainty` + `safeMax` 75000（10 万字符仅第三方汇总，X 未公开固定数字）。③新增 `check_x_article`：正文/标题/首段字数、封面 16:9、分节数量、配图体积与格式、风险词；正文插图不套封面比例。④修复 `uncertain_max` 只认 `max` 不认 `maxChars` 的问题（字数规格带 uncertainty 时会抛 TypeError）；风险词扫描补上 `intro` / `digest` / `shortTitle`。⑤路由与 SKILL.md 登记第 4 个平台；`x/article` 归入静态形式。回归测试 137 → 153 项。 |
 | **v1.5.0** | **补上配音能力，并明确禁用系统机器音。** ①新增 `motion-film/voiceover.md`：优先级链为用户提供 → **edge-tts** → 其他免费 TTS → **停下来问用户**；按片子气质选音色（性格→性别/语速/音高的映射表）并把理由写进 `plan.json.voiceover`；`say` / SAPI / eSpeak 一律禁用，**没有配音优于机器音**。②新增 `scripts/video-line/make_voiceover.py`：`--doctor` 体检、`--list-voices` 列音色、按 plan 逐幕生成配音与 SRT；edge-tts 输出为 24kHz mp3，自动转 48kHz 单声道 PCM wav；缺 edge-tts 时退出码 3（要求用户决定），**不降级**。③`check_environment.py` 增加 TTS 探测与禁用引擎识别，写入 `details.tts`，**不阻塞渲染**。④`pipeline-notes.md` 第 11 条由 `say` 用法改为 edge-tts 的正确用法与参数上限。⑤`SKILL.md` 第 6 步改为「配音、配乐与音效」。分册 18 → 19，脚本 6 → 7，回归测试 131 → 137 项。 |
 | **v1.4.0** | **影片形式通用化：片型由内容决定，不再一律做成产品片。** ①形式 `generic/product-video` → `generic/motion-film`，目录 `references/platforms/generic/product-video/` → `motion-film/`；**旧 ID 不再兼容**（`LEGACY_ALIAS` 已移除，旧 plan.json 会报错）。②新增 `filmKind`（`product` / `evidence` / `explainer` / `story`）：`check_delivery.py` 按片型分派必备项——`product` 要求功能主张与原组件，`evidence`/`explainer` 要求 FACTS 或 RESEARCH，`story` 不要求主张但建议 `fictionNote`。③**不声明 `filmKind` 等于 `product`**，默认严格度与 v1.3.0 完全一致；任何片型都不许假造界面。④SKILL.md、routing、specs、README 同步改为「影片 + 片型」表述。回归测试 122 → 131 项。 |
